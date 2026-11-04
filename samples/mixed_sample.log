@@ -1,0 +1,13 @@
+Oct 21 09:30:00 server sshd[4050]: Accepted publickey for alice from 192.168.1.10 port 50122 ssh2: RSA SHA256:validkey
+Oct 21 10:15:20 server sshd[4075]: Failed password for bob from 192.168.1.45 port 50125 ssh2
+Oct 21 10:15:35 server sshd[4075]: Accepted password for bob from 192.168.1.45 port 50125 ssh2
+THIS IS A MALFORMED CORRUPTED LOG LINE WITHOUT VALID STRUCTURE !@#$%^
+Oct 21 11:00:01 server sshd[5001]: Failed password for admin from 198.51.100.77 port 48101 ssh2
+Oct 21 11:00:03 server sshd[5002]: Failed password for admin from 198.51.100.77 port 48102 ssh2
+Oct 21 11:00:05 server sshd[5003]: Failed password for admin from 198.51.100.77 port 48103 ssh2
+Oct 21 11:00:07 server sshd[5004]: Failed password for admin from 198.51.100.77 port 48104 ssh2
+Oct 21 11:00:15 server sshd[5005]: Accepted password for admin from 198.51.100.77 port 48105 ssh2
+198.51.100.77 - - [21/Oct/2026:11:02:00 +0000] "GET /api?query=1%27%20UNION%20SELECT%20null,null-- HTTP/1.1" 200 120 "-" "masscan/1.3"
+198.51.100.77 - - [21/Oct/2026:11:02:10 +0000] "GET /../../../../etc/shadow HTTP/1.1" 403 162 "-" "curl/7.68.0"
+ANOTHER BROKEN LINE ::: ERROR UNKNOWN RECORD
+Oct 21 11:05:00 server sshd[5100]: session opened for user admin by (uid=0)

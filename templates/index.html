@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Upload & Select Logs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Ingest Security Logs</h1>
+    <p class="page-subtitle">Upload sanitized server logs or test pre-configured synthetic attack scenarios.</p>
+</div>
+
+<div class="grid-2-col">
+    <!-- Upload Section -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📁 Upload Custom Log File</h2>
+            <span class="badge-neutral">Local Processing Only</span>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+                <div class="drop-zone" id="dropZone">
+                    <span class="drop-icon">📤</span>
+                    <p class="drop-title">Drag & drop your log file here</p>
+                    <p class="drop-sub">Supported formats: <strong>.log</strong> and <strong>.txt</strong> (Max: 16 MB)</p>
+                    <input type="file" name="logfile" id="fileInput" class="file-input" accept=".log,.txt" required>
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+                    <p id="selectedFileName" class="selected-file-text"></p>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-block">🚀 Analyze Log File</button>
+                </div>
+            </form>
+
+            <div class="upload-specs">
+                <h4>Supported Log Formats:</h4>
+                <ul>
+                    <li><strong>Linux Auth Logs:</strong> <code>/var/log/auth.log</code>, <code>/var/log/secure</code> (sshd, pam_unix)</li>
+                    <li><strong>Web Access Logs:</strong> Apache Combined, Nginx Common Log Format (CLF)</li>
+                    <li><strong>Custom Sanitized:</strong> Anonymized text logs with ISO or Syslog timestamps</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Synthetic Samples Section -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🧪 Quick-Load Synthetic Test Datasets</h2>
+            <span class="badge-neutral">Safe & Sanitized</span>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Choose from pre-packaged synthetic datasets to demonstrate specific incident response and anomaly detection rules:</p>
+
+            <div class="sample-list">
+                {% for sample in samples %}
+                <div class="sample-card {% if sample.name == current_file %}sample-card-active{% endif %}">
+                    <div class="sample-info">
+                        <div class="sample-name">
+                            <span class="sample-badge">LOG</span>
+                            <strong>{{ sample.name }}</strong>
+                            {% if sample.name == current_file %}
+                                <span class="badge-success">Currently Active</span>
+                            {% endif %}
+                        </div>
+                        <p class="sample-desc">{{ sample.desc }}</p>
+                    </div>
+                    <a href="{{ url_for('load_sample', sample_name=sample.name) }}" class="btn btn-outline btn-sm">Load & Inspect</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

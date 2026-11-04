@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Detected Incidents & Anomalies{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Detected Incidents & Threat Anomalies</h1>
+        <p class="page-subtitle">Multi-vector intrusion analysis for <strong>{{ filename }}</strong></p>
+    </div>
+    <div class="severity-pill-group">
+        <a href="{{ url_for('incidents', severity='ALL') }}" class="sev-pill {% if sev_filter == 'ALL' or not sev_filter %}active{% endif %}">
+            All ({{ total_count }})
+        </a>
+        <a href="{{ url_for('incidents', severity='CRITICAL') }}" class="sev-pill sev-pill-critical {% if sev_filter == 'CRITICAL' %}active{% endif %}">
+            Critical ({{ severity_counts.CRITICAL or 0 }})
+        </a>
+        <a href="{{ url_for('incidents', severity='HIGH') }}" class="sev-pill sev-pill-high {% if sev_filter == 'HIGH' %}active{% endif %}">
+            High ({{ severity_counts.HIGH or 0 }})
+        </a>
+        <a href="{{ url_for('incidents', severity='MEDIUM') }}" class="sev-pill sev-pill-medium {% if sev_filter == 'MEDIUM' %}active{% endif %}">
+            Medium ({{ severity_counts.MEDIUM or 0 }})
+        </a>
+        <a href="{{ url_for('incidents', severity='LOW') }}" class="sev-pill sev-pill-low {% if sev_filter == 'LOW' %}active{% endif %}">
+            Low ({{ severity_counts.LOW or 0 }})
+        </a>
+    </div>
+</div>
+
+{% if incidents %}
+<div class="incidents-stack">
+    {% for inc in incidents %}
+    <div class="card incident-card border-{{ inc.severity|lower }}">
+        <div class="incident-card-header">
+            <div class="incident-title-area">
+                <span class="badge-{{ inc.severity|lower }}">{{ inc.severity }}</span>
+                <span class="incident-id">{{ inc.id }}</span>
+                <h3 class="incident-rule">{{ inc.rule_name }}</h3>
+            </div>
+            <div class="incident-meta">
+                <span class="meta-item">⏱ <strong>{{ inc.timestamp }}</strong></span>
+                <span class="meta-item">🌐 Source IP: <code>{{ inc.source_ip }}</code></span>
+                <span class="meta-item">🔗 Correlated Events: <strong>{{ inc.related_events|length }}</strong></span>
+            </div>
+        </div>
+
+        <div class="incident-card-body">
+            <p class="incident-desc">{{ inc.description }}</p>
+
+            <div class="incident-section">
+                <h4>🔍 Reason for Detection:</h4>
+                <p class="incident-reason">{{ inc.reason }}</p>
+            </div>
+
+            <div class="incident-section">
+                <h4>🛡️ Recommended Investigation & Response Steps:</h4>
+                <ul class="investigation-steps">
+                    {% for step in inc.recommended_steps %}
+                    <li>{{ step }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Instant Containment Command for High/Critical -->
+            {% if inc.severity in ['CRITICAL', 'HIGH'] %}
+            <div class="containment-box">
+                <span class="containment-label">🚨 Recommended Firewall Block Command:</span>
+                <code>iptables -A INPUT -s {{ inc.source_ip }} -j DROP</code>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <span class="empty-icon">🛡️</span>
+    <h3>No incidents found for severity: {{ sev_filter or 'ALL' }}</h3>
+    <p>Zero security incidents match this filter level.</p>
+    <a href="{{ url_for('incidents', severity='ALL') }}" class="btn btn-primary btn-sm">View All Incidents</a>
+</div>
+{% endif %}
+{% endblock %}

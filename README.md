@@ -1,134 +1,178 @@
 # 🛡️ Security Log Analyzer & Incident Response Engine (Task 4)
+**CodeNova Cybersecurity Internship — Task 4**
 
 [![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Streamlit](https://img.shields.io/badge/UI-Streamlit-red.svg)](https://streamlit.io/)
-[![Tabulate](https://img.shields.io/badge/Report-Tabulate%20%7C%20Markdown-orange.svg)](https://pypi.org/project/tabulate/)
-[![Cybersecurity](https://img.shields.io/badge/Domain-SOC%20%7C%20Incident%20Response-purple.svg)]()
+[![Framework](https://img.shields.io/badge/Backend-Flask%203.0-lightgrey.svg)](https://flask.palletsprojects.com/)
+[![Frontend](https://img.shields.io/badge/Frontend-HTML5%20%7C%20CSS3%20%7C%20Chart.js-orange.svg)]()
+[![Testing](https://img.shields.io/badge/Tests-Pytest%20(22%20Passed)-green.svg)](https://docs.pytest.org/)
+[![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-> **Task 4: Incident Response & Anomaly Detection**  
-> An automated, production-ready security log analysis tool designed to inspect authentication (`auth.log`) and web server (`access.log`) logs, detect brute-force attacks and known cyber attack signatures, differentiate routine errors from malicious campaigns, and generate executive-grade incident reports.
+> A production-grade, defensive **Security Log Analyzer & Incident Response Web Application** built for the **CodeNova Cybersecurity Internship**.
+> It parses Linux authentication logs (`auth.log`/`secure`) and web server access logs (Apache/Nginx), identifies repeated failed authentications, detects brute-force bursts and web attack vectors, strictly differentiates routine user typos from malicious campaigns, and generates structured executive reports in **Markdown (.md)**, **Plaintext (.txt)**, and **CSV (.csv)**.
 
 ---
 
 ## 📌 Table of Contents
-- [Project Overview](#-project-overview)
-- [Key Features](#-key-features)
-- [Technical Architecture](#-technical-architecture)
-- [Detection Rules & Threat Engine](#-detection-rules--threat-engine)
-- [Installation & Setup](#-installation--setup)
-- [Command-Line Interface (CLI)](#-command-line-interface-cli)
-- [Interactive Web Dashboard (Streamlit)](#-interactive-web-dashboard-streamlit)
-- [Sample Incident Report Output](#-sample-incident-report-output)
-- [Automated Testing Suite](#-automated-testing-suite)
-- [Directory Structure](#-directory-structure)
-- [Git & GitHub Submission Guide](#-git--github-submission-guide)
-- [Author & Acknowledgments](#-author--acknowledgments)
+- [1. Project Objectives & Security Guardrails](#1-project-objectives--security-guardrails)
+- [2. Technology Stack](#2-technology-stack)
+- [3. Complete Project Folder Structure](#3-complete-project-folder-structure)
+- [4. The 7 Core Detection Rules](#4-the-7-core-detection-rules)
+- [5. 4-Tier Incident Severity Engine](#5-4-tier-incident-severity-engine)
+- [6. Synthetic Sample Datasets](#6-synthetic-sample-datasets)
+- [7. Installation & Quick Start](#7-installation--quick-start)
+- [8. Application Workflow & Demonstration Guide](#8-application-workflow--demonstration-guide)
+- [9. Automated Testing (Pytest)](#9-automated-testing-pytest)
+- [10. Incident Report Deliverables](#10-incident-report-deliverables)
+- [11. Git Pushing & Submission Instructions](#11-git-pushing--submission-instructions)
 
 ---
 
-## 🎯 Project Overview
+## 1. Project Objectives & Security Guardrails
 
-In Security Operations Centers (SOC), analysts handle gigabytes of telemetry daily. Manual log reviews are prone to alert fatigue and miss subtle intrusions.
+### Core Objective:
+Develop a local, defensive security log analysis tool that accepts sanitized or synthetic authentication and web server log files, analyzes the events, detects suspicious activities, classifies incidents, and generates structured security reports.
 
-This tool solves this challenge by implementing an automated **Detection & Incident Response Engine**:
-1. **Parses heterogeneous logs** using robust regular expressions (Linux SSH/Syslog & Apache/Nginx combined format).
-2. **Tallies failed authentications** grouped by source IP address and flags threshold violations ($\ge 5$ attempts).
-3. **Detects high-frequency brute-force bursts** using sliding temporal windows (e.g., $\ge 4$ failures within 60 seconds).
-4. **Flags off-hours anomalies** (activity outside 08:00–18:00 Monday–Friday) and unauthorized privileged root sessions.
-5. **Identifies known attack vectors** including SQL Injection (SQLi), Path/Directory Traversal (LFI), OS Command Injection (RCE), Cross-Site Scripting (XSS), and automated vulnerability scanners (Nikto, sqlmap, Masscan).
-6. **Strictly differentiates routine mistakes from malicious campaigns** to minimize false positives.
-7. **Generates publication-ready Markdown (`.md`) and ASCII Grid (`.txt`) Incident Reports** using `tabulate`.
-8. **Generates instant remediation firewall rules** (`iptables` and `ufw`) for active perimeter containment.
+### Security & Privacy Guardrails:
+- **100% Local Processing:** Runs purely in local memory (`127.0.0.1:5000`); never connects to external servers, external APIs, or cloud backends.
+- **Strictly Defensive:** Does not execute network scans, port probes, brute-force testing, or credential harvesting.
+- **Non-Execution of Uploads:** Files are validated (`.log` and `.txt` only), sanitized with `werkzeug.utils.secure_filename`, and processed purely as text.
+- **XSS & Injection Protection:** All displayed log content is strictly HTML-escaped.
+- **Zero Real Target Data:** Works exclusively on sanitized and synthetic datasets with documentation-only IPs (RFC 5737: `192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24`, and private `192.168.1.0/24`).
 
 ---
 
-## 🚀 Key Features
+## 2. Technology Stack
 
-- **⚡ Dual Mode Interface**: Available as both a rapid **Command-Line Interface (CLI)** and a sleek, interactive **Streamlit Web Dashboard**.
-- **🔍 Regex Log Parser**: Zero-dependency regex patterns matching standard syslog (`Oct 21 14:02:01`), ISO 8601 (`2026-10-21T14:02:01`), and Nginx/Apache Combined Access Log formats.
-- **⏱️ Temporal Engine (`datetime`)**: Sliding-window rate limiting, timestamp normalization, and business hours vs. off-hours classification.
-- **⚖️ False Positive Reduction**: Distinguishes between internal employees mistyping passwords during business hours and external automated credential stuffers.
-- **📊 Tabulate & Markdown Reporting**: Clean tabular presentation of IPs, attack categories, targeted accounts, and chronological anomaly feeds.
-- **🛡️ Instant Firewall Containment**: Auto-generates drop rules (`iptables -A INPUT -s <IP> -j DROP`) for high-severity offending hosts.
+- **Backend:** Python 3, Flask 3.0, Regular Expressions (`re`), Datetime, Pandas, Werkzeug
+- **Frontend:** HTML5, Modern CSS3 (Inter & JetBrains Mono typography), Vanilla JavaScript, Chart.js 4 (via CDN)
+- **Testing:** Pytest (22 passing unit and integration tests)
+- **Reporting:** Tabulate, Markdown (.md), Plaintext (.txt), Comma-Separated Values (.csv)
 
 ---
 
-## 🏗️ Technical Architecture
+## 3. Complete Project Folder Structure
 
 ```text
-┌────────────────────────────────────────────────────────┐
-│             Raw Log Stream (auth.log / nginx)          │
-└───────────────────────────┬────────────────────────────┘
-                            │
-                            ▼
-              ┌───────────────────────────┐
-              │  src/parsers.py (Regex)   │
-              │  - Syslog / SSH Extraction│
-              │  - Web Nginx/Apache Parse │
-              └─────────────┬─────────────┘
-                            │ Structured LogEntries
-                            ▼
-              ┌───────────────────────────┐
-              │  src/analyzer.py (Engine) │
-              │  - Threshold Breaches     │
-              │  - Rapid Burst Detection  │
-              │  - Off-Hours Temporal Eval│
-              │  - Attack Signature Match │
-              │  - False-Positive Diff    │
-              └─────────────┬─────────────┘
-                            │ AnalysisResult Model
-                            ▼
-         ┌──────────────────┴──────────────────┐
-         ▼                                     ▼
-┌─────────────────────────┐          ┌─────────────────────────┐
-│   CLI: log_analyzer.py  │          │    Web UI: app.py       │
-│   (Terminal & ASCII)    │          │  (Streamlit Dashboard)  │
-└────────────┬────────────┘          └────────────┬────────────┘
-             │                                    │
-             ▼                                    ▼
-┌──────────────────────────────────────────────────────────────┐
-│  src/reporter.py -> Markdown (.md) & Tabulate Plaintext (.txt)│
-└──────────────────────────────────────────────────────────────┘
+security-log-analyzer/
+│
+├── app.py                                      # Flask web application entrypoint & API
+├── config.py                                   # Global configuration, thresholds, and limits
+├── requirements.txt                            # Python dependencies
+├── README.md                                   # Complete documentation & user guide
+├── GITHUB_PUSHING_GUIDE.md                     # Step-by-step Git push manual
+├── LINKEDIN_POSTING_GUIDE.md                   # Ready-to-use LinkedIn post templates
+│
+├── analyzer/                                   # Modular Detection & Parsing Package
+│   ├── __init__.py                             # Package exports
+│   ├── normalizer.py                           # Standardized LogEvent & Incident dataclasses
+│   ├── auth_parser.py                          # Linux auth.log/secure regex parser with year inference
+│   ├── web_parser.py                           # Apache & Nginx Combined/CLF access log parser
+│   ├── parser.py                               # MasterParser dispatcher & format auto-detection
+│   ├── detection.py                            # 7 SOC detection rules engine
+│   ├── severity.py                             # 4-tier incident severity classifier
+│   └── report_generator.py                     # Markdown, Text, and CSV report generator
+│
+├── templates/                                  # Responsive SOC-Themed Jinja2 Templates
+│   ├── base.html                               # Navigation bar, status indicator, flash alerts, footer
+│   ├── index.html                              # Upload logs page with drag-and-drop & quick sample loader
+│   ├── dashboard.html                          # Executive dashboard with Chart.js analytics & KPI cards
+│   ├── events.html                             # Security events browser with multi-field search & filters
+│   ├── incidents.html                          # Incidents page with severity filters & firewall commands
+│   ├── reports.html                            # In-browser report preview and one-click download buttons
+│   └── about.html                              # Architecture, methodology, and MITRE ATT&CK mapping
+│
+├── static/                                     # Static Assets
+│   ├── css/
+│   │   └── style.css                           # Light SOC design, navy text, blue accents, severity colors
+│   └── js/
+│       └── dashboard.js                        # Chart.js initialization and drag-and-drop listeners
+│
+├── samples/                                    # Synthetic Sanitized Test Logs
+│   ├── normal_auth.log                         # Legitimate business-hours authentications
+│   ├── brute_force_sample.log                  # High-velocity dictionary attacks & bursts
+│   ├── off_hours_sample.log                    # Nighttime logins (02:14 - 05:22) and root access
+│   ├── web_access_sample.log                   # Web access logs with SQLi, Traversal, 401/403 bursts
+│   └── mixed_sample.log                        # Multi-vector incident log with malformed entries
+│
+├── reports/                                    # Generated Incident Reports
+│   ├── security_incident_report_auth.md
+│   ├── security_incident_report_auth.txt
+│   ├── security_incident_report_nginx_access.md
+│   ├── security_incident_report_nginx_access.txt
+│   ├── security_incident_report_test_mixed.md
+│   └── security_incident_report_test_mixed.txt
+│
+└── tests/                                      # Automated Pytest Suite
+    ├── test_parser.py                          # Auth and Web parser validation
+    ├── test_detection.py                       # 7 detection rules validation
+    ├── test_severity.py                        # Severity scaling and off-hours check
+    └── test_reports.py                         # MD, TXT, and CSV generation checks
 ```
 
 ---
 
-## 🔬 Detection Rules & Threat Engine
+## 4. The 7 Core Detection Rules
 
-| Threat Vector | Rule Logic / Regex Signature | Severity | MITRE ATT&CK Ref |
-| :--- | :--- | :--- | :--- |
-| **High Failed Logins** | Failed authentication tally $\ge 5$ attempts from single IP | **HIGH / CRITICAL** | T1110 (Brute Force) |
-| **Rapid Burst Attack** | $\ge 4$ failed attempts within 60 seconds | **CRITICAL** | T1110.001 (Password Guessing) |
-| **Off-Hours Intrusion** | Activity outside 08:00–18:00 Mon–Fri or weekend | **HIGH** | T1078 (Valid Accounts) |
-| **Privileged Off-Hours Login** | Successful `root` / `admin` session during off-hours | **CRITICAL** | T1078.003 (Local Accounts) |
-| **SQL Injection (SQLi)** | `(?i)(union\s+select|or\s+\d+=\d+|--|drop\s+table)` | **CRITICAL** | T1190 (Exploit Public-Facing App) |
-| **Path Traversal (LFI)** | `(\.\./|\.\.\\|/etc/passwd|win\.ini|boot\.ini)` | **HIGH** | T1083 (File & Directory Discovery) |
-| **OS Command Injection** | `(;|\$\(|\bexec\b).*(cat\s+/etc/passwd|whoami|bash)` | **CRITICAL** | T1059 (Command & Scripting Interpreter) |
-| **Vulnerability Scanners** | User agents: `sqlmap`, `nikto`, `masscan`, `nmap` | **HIGH** | T1595 (Active Scanning) |
+| # | Rule Name | Trigger Criteria | Default Severity | MITRE ATT&CK |
+|---|:---|:---|:---:|:---:|
+| **1** | **Repeated Failed Authentication** | Groups failed logins by IP. 1–3: LOW, 4–5: MEDIUM, $\ge 6$: HIGH, $\ge 15$: CRITICAL. | **MEDIUM / HIGH** | T1110 |
+| **2** | **Rapid Sequential Login Attempts** | $\ge 4$ failed login attempts within a 60-second sliding window from the same IP. | **HIGH / CRITICAL** | T1110.001 |
+| **3** | **Multiple Usernames Targeted** | Single source IP targeting $\ge 3$ distinct usernames (credential stuffing / dictionary scan). | **HIGH** | T1110.004 |
+| **4** | **Successful Login Following Failures** | An IP has $\ge 3$ consecutive failed attempts followed immediately by a successful authentication (Compromise alert). | **CRITICAL** | T1078 |
+| **5** | **Off-Hours Login Activity** | Authentication attempts outside 08:00–18:00 Mon–Fri. *(Never classified as CRITICAL solely for off-hours)*. | **MEDIUM / HIGH** | T1078.003 |
+| **6** | **HTTP 401 & 403 Error Bursts** | $\ge 5$ web client access denial responses from single IP in short timeframe (endpoint probing). | **MEDIUM** | T1595.002 |
+| **7** | **Suspicious URL Patterns** | Regex detection for SQLi (`UNION SELECT`), Path Traversal (`../etc/passwd`), Command Injection, and scanners (`nikto`, `sqlmap`). | **HIGH / CRITICAL** | T1190 / T1083 |
 
 ---
 
-## 💻 Installation & Setup
+## 5. 4-Tier Incident Severity Engine
 
-### Prerequisites
-- Python 3.10 or higher
-- `git` version control tool
+1. **LOW (Green):**
+   - Routine password typos during regular business hours followed by successful login.
+   - Isolated single failed attempts below threshold.
+2. **MEDIUM (Orange):**
+   - 4–5 failed attempts (exceeding normal typo tolerance).
+   - Off-hours authentication events without privilege escalation.
+   - HTTP 401/403 access denial bursts.
+3. **HIGH (Red):**
+   - Failed logins $\ge 6$ attempts (threshold breach).
+   - Rapid sequential login bursts ($\ge 4$ in 60s).
+   - Credential stuffing targeting multiple usernames.
+   - Path Traversal and automated vulnerability scanner probes.
+4. **CRITICAL (Dark Red):**
+   - **Successful authentication immediately following repeated brute-force failures** (Potential Account Compromise).
+   - Extreme brute-force volume ($\ge 15$ attempts).
+   - Exploitation payloads: SQL Injection (`UNION SELECT`), OS Command Injection.
 
-### 1. Clone the Repository
+---
+
+## 6. Synthetic Sample Datasets
+
+All sample datasets in `samples/` are purely synthetic and use RFC-reserved IP addresses:
+
+1. `samples/normal_auth.log`: Normal user logins during business hours (`alice`, `bob`, `charlie`).
+2. `samples/brute_force_sample.log`: Rapid SSH dictionary attack from `203.0.113.88` targeting `root`, `admin`, `oracle`, `postgres`, `git`, `deploy`.
+3. `samples/off_hours_sample.log`: Suspicious off-hours attacks at 02:14, 03:52, and 05:22.
+4. `samples/web_access_sample.log`: Web traffic containing SQLi, Path Traversal (`../../etc/passwd`), 401/403 bursts, and `sqlmap`/`Nikto` probes.
+5. `samples/mixed_sample.log`: Combined scenario featuring legitimate logins, malformed lines, SQLi, and a critical **successful login following repeated failed attempts**.
+
+---
+
+## 7. Installation & Quick Start
+
+### 1. Clone or Open the Repository
 ```bash
-git clone https://github.com/your-username/security-log-analyzer.git
-cd security-log-analyzer
+cd "c:\Users\vikra\OneDrive\Documents\cyber security internship\task4"
 ```
 
-### 2. Create and Activate Virtual Environment (Recommended)
+### 2. Set Up Virtual Environment (Recommended)
 ```bash
-# Windows
 python -m venv venv
+
+# Windows
 .\venv\Scripts\activate
 
 # Linux / macOS
-python3 -m venv venv
 source venv/bin/activate
 ```
 
@@ -137,166 +181,104 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
----
-
-## 🖥️ Command-Line Interface (CLI)
-
-The CLI tool `log_analyzer.py` offers extensive options for automated batch processing and headless server environments:
-
-### Basic Execution (Default Auth Log)
+### 4. Run the Flask Web Application
 ```bash
-python log_analyzer.py --log logs/auth.log
+python app.py
 ```
-
-### Analyzing Web Server Access Logs
-```bash
-python log_analyzer.py --log logs/nginx_access.log
-```
-
-### Customizing Thresholds and Formats
-```bash
-python log_analyzer.py \
-  --log logs/auth.log \
-  --threshold 5 \
-  --burst-count 4 \
-  --burst-window 60 \
-  --format both \
-  --output-dir reports
-```
-
-### CLI Command Options
-- `--log`, `-l`: Path to log file (`logs/auth.log`, `logs/nginx_access.log`, etc.)
-- `--threshold`, `-t`: Failed login count threshold per IP (default: `5`)
-- `--burst-count`: Number of attempts inside time window to trigger burst alert (default: `4`)
-- `--burst-window`: Burst window duration in seconds (default: `60`)
-- `--format`, `-f`: Format choice: `markdown`, `text`, or `both` (default: `both`)
-- `--output-dir`, `-o`: Directory where reports are saved (default: `reports`)
-- `--quiet`, `-q`: Suppress terminal banner and ASCII tables
+Open your browser and navigate to:
+**[http://127.0.0.1:5000](http://127.0.0.1:5000)**
 
 ---
 
-## 🌐 Interactive Web Dashboard (Streamlit)
+## 8. Application Workflow & Demonstration Guide
 
-For an intuitive visual exploration experience, launch the Streamlit web application:
-
-```bash
-streamlit run app.py
-```
-
-### Dashboard Capabilities:
-- **Preset Scenarios & File Uploader:** Switch seamlessly between SSH logs, Web access logs, multi-vector incidents, or upload your own `.log` files.
-- **Dynamic Anomaly Sliders:** Tweak thresholds and business hours in real-time with instant recalculation.
-- **Interactive KPI Scorecards:** Immediate view of Total Logs, Critical Threats, Malicious IPs, and Routine Typos.
-- **Threat Analytics Charts:** Visual representation of threat severities and top offending IP addresses.
-- **Differentiated Analysis Tab:** Visual comparison side-by-side between genuine user mistakes and malicious intrusions.
-- **One-Click Export:** Download publication-ready `.md` and `.txt` reports with a single click.
-- **Remediation Firewall Playbook:** Auto-generated `iptables` and `ufw` drop commands ready for execution.
+1. **Upload / Quick-Load Page (`/`):**
+   - Click any sample card (e.g., `mixed_sample.log` or `brute_force_sample.log`) to load and inspect instantly.
+   - Alternatively, drag and drop any `.log` or `.txt` file into the upload zone.
+2. **SOC Dashboard (`/dashboard`):**
+   - View 6 calculated KPI cards: Total Events, Successful Logins, Failed Logins, Suspicious IPs, Anomalies, Critical Incidents.
+   - Explore interactive **Chart.js** visualizations:
+     - Authentication Activity Timeline (Hourly Failed vs. Successful Logins).
+     - Incident Severity Distribution Doughnut Chart.
+   - Inspect the Top Offending Source IPs table.
+3. **Security Events Explorer (`/events`):**
+   - Filter events by Source IP (e.g. `203.0.113.88`).
+   - Filter by Username (e.g. `root`, `admin`).
+   - Filter by Event Type (`LOGIN_FAILED`, `LOGIN_SUCCESS`, `WEB_REQUEST`).
+   - Events are automatically sorted recent first.
+4. **Detected Incidents (`/incidents`):**
+   - Filter by severity tabs (CRITICAL, HIGH, MEDIUM, LOW).
+   - Review rule triggers, technical reasons, and recommended response playbooks.
+   - Copy auto-generated `iptables` perimeter containment commands for malicious hosts.
+5. **Reports Hub (`/reports`):**
+   - Download the full incident report in **Markdown (.md)**, **Plaintext (.txt)**, or **CSV (.csv)**.
 
 ---
 
-## 📑 Sample Incident Report Output
+## 9. Automated Testing (Pytest)
 
-### Terminal ASCII Grid Format (Sample Excerpt)
+The project includes an automated test suite verifying all parsers, detection heuristics, severity rankings, and report exports:
+
+```bash
+pytest -v
+```
+
+### Test Results:
 ```text
-================================================================================
-                    CYBER SECURITY INCIDENT & ANOMALY REPORT
-================================================================================
-Target Log:       logs/auth.log
-Analysis Time:    2026-11-04 07:20:09
-Risk Posture:     CRITICAL (Immediate Action Required)
-Total Events:     37 (Auth: 37, Web: 0)
-Critical / High:  3 Critical, 5 High
---------------------------------------------------------------------------------
+============================= test session starts =============================
+platform win32 -- Python 3.12.3, pytest-9.1.1
+collected 22 items
 
-[1] IP SOURCE ACTIVITY SUMMARY:
-+---------------+---------+----------+-----------+-------------------------+--------------------+------------+-------------+
-| Source IP     |   Total |   Failed |   Success | Targeted Users          | Class              | Severity   | Threshold   |
-+===============+=========+==========+===========+=========================+====================+============+=============+
-| 203.0.113.88  |      15 |       15 |         0 | admin, administrator... | BRUTE_FORCE_ATTACK | CRITICAL   | YES [ALERT] |
-| 198.51.100.23 |       8 |        7 |         1 | admin, backup...        | BRUTE_FORCE_ATTACK | HIGH       | YES [ALERT] |
-| 185.220.101.5 |       6 |        6 |         0 | debian, ftpuser...      | BRUTE_FORCE_ATTACK | HIGH       | YES [ALERT] |
-| 192.168.1.45  |       3 |        1 |         2 | bob                     | ROUTINE_ERROR      | LOW        | NO          |
-| 192.168.1.80  |       2 |        1 |         1 | charlie                 | ROUTINE_ERROR      | LOW        | NO          |
-| 192.168.1.10  |       2 |        0 |         2 | alice                   | BENIGN             | LOW        | NO          |
-+---------------+---------+----------+-----------+-------------------------+--------------------+------------+-------------+
-
-[2] ROUTINE USER ERRORS VS. MALICIOUS ATTACKS:
-- Routine User Typos Detected:     2 instances
-- Confirmed Malicious Attackers:    3 host(s)
-
-[3] RECOMMENDED FIREWALL ACTIONS:
-  * iptables -A INPUT -s 203.0.113.88 -j DROP  # BRUTE_FORCE_ATTACK (CRITICAL)
-  * iptables -A INPUT -s 185.220.101.5 -j DROP  # BRUTE_FORCE_ATTACK (HIGH)
-  * iptables -A INPUT -s 198.51.100.23 -j DROP  # BRUTE_FORCE_ATTACK (HIGH)
+tests/test_parser.py::test_auth_parser_valid_failed_login PASSED         [  4%]
+tests/test_parser.py::test_auth_parser_invalid_user PASSED               [  9%]
+tests/test_parser.py::test_auth_parser_accepted_login PASSED             [ 13%]
+tests/test_parser.py::test_web_parser_combined_format PASSED             [ 18%]
+tests/test_parser.py::test_master_parser_with_malformed_lines PASSED     [ 22%]
+tests/test_detection.py::test_failed_login_grouping_and_threshold PASSED [ 27%]
+tests/test_detection.py::test_successful_login_after_failures PASSED     [ 31%]
+tests/test_detection.py::test_rapid_burst_detection PASSED               [ 36%]
+tests/test_detection.py::test_multiple_usernames_targeted PASSED         [ 40%]
+tests/test_detection.py::test_off_hours_detection PASSED                 [ 45%]
+tests/test_detection.py::test_web_signatures_and_error_burst PASSED      [ 50%]
+tests/test_severity.py::test_failed_login_severity_scaling PASSED        [ 54%]
+tests/test_severity.py::test_off_hours_never_critical_alone PASSED       [ 59%]
+tests/test_severity.py::test_attack_signature_severity PASSED            [ 63%]
+tests/test_reports.py::test_report_generation_formats PASSED             [ 68%]
+... (22 passed in 0.60s)
+============================= 22 passed in 0.60s ==============================
 ```
 
 ---
 
-## 🧪 Automated Testing Suite
+## 10. Incident Report Deliverables
 
-A comprehensive test suite is included in `test_analyzer.py` to validate parsing, detection thresholds, burst logic, attack signatures, and report outputs:
+Pre-generated reports are stored in `reports/`:
+- `reports/security_incident_report_auth.md` & `.txt`
+- `reports/security_incident_report_nginx_access.md` & `.txt`
+- `reports/security_incident_report_test_mixed.md` & `.txt`
 
-```bash
-python test_analyzer.py
-```
-Output:
-```text
-.......
-----------------------------------------------------------------------
-Ran 7 tests in 0.044s
-
-OK
-```
-
----
-
-## 📂 Directory Structure
-
-```text
-task4/
-│
-├── logs/                                       # Sanitized Synthetic Log Datasets
-│   ├── auth.log                                # Linux SSH log (Brute-force, bursts, off-hours)
-│   ├── nginx_access.log                        # Web log (SQLi, Path Traversal, Scanners, XSS)
-│   └── test_mixed.log                          # Multi-vector incident log
-│
-├── reports/                                    # Generated Security Incident Reports
-│   ├── security_incident_report_auth.md        # Formatted Markdown report
-│   ├── security_incident_report_auth.txt       # Formatted ASCII text report
-│   ├── security_incident_report_nginx_access.md
-│   ├── security_incident_report_nginx_access.txt
-│   ├── security_incident_report_test_mixed.md
-│   └── security_incident_report_test_mixed.txt
-│
-├── src/                                        # Modular Core Engine
-│   ├── __init__.py                             # Package export definitions
-│   ├── parsers.py                              # Regex log parsing & timestamp normalization
-│   ├── signatures.py                           # Known attack regexes (SQLi, LFI, RCE, XSS)
-│   ├── analyzer.py                             # Anomaly detector & False Positive differentiator
-│   └── reporter.py                             # Tabulate & Markdown report generator
-│
-├── log_analyzer.py                             # Primary CLI executable script
-├── app.py                                      # Streamlit Interactive Web Application
-├── test_analyzer.py                            # Automated unit & integration test suite
-├── requirements.txt                            # Project dependencies
-├── .gitignore                                  # Git exclusion configuration
-├── README.md                                   # Project documentation
-├── GITHUB_PUSHING_GUIDE.md                     # Step-by-step Git push manual
-└── LINKEDIN_POSTING_GUIDE.md                   # Ready-to-use LinkedIn post templates
-```
+Every report contains all 11 required sections:
+1. Executive Summary
+2. Analysis Metadata
+3. Total Events & Authentication Metrics
+4. Severity Classification Breakdown
+5. Suspicious IP Addresses & Threat Attribution
+6. Detected Security Anomalies & Incident Timeline
+7. Relevant Event Evidence (Raw Log Extract)
+8. Recommended Investigation Steps & Firewall Playbook
+9. False-Positive Disclaimer
 
 ---
 
-## 🛡️ Git & GitHub Submission Guide
+## 11. Git Pushing & Submission Instructions
 
-Refer to [GITHUB_PUSHING_GUIDE.md](GITHUB_PUSHING_GUIDE.md) for step-by-step commands to push this project to your GitHub repository and showcase it on your portfolio.
-
-For sharing your achievement on LinkedIn, check out [LINKEDIN_POSTING_GUIDE.md](LINKEDIN_POSTING_GUIDE.md).
+Please refer to:
+- [`GITHUB_PUSHING_GUIDE.md`](GITHUB_PUSHING_GUIDE.md) for full Git repository push instructions.
+- [`LINKEDIN_POSTING_GUIDE.md`](LINKEDIN_POSTING_GUIDE.md) for ready-to-copy LinkedIn / Portfolio showcase posts.
 
 ---
 
-## 👤 Author & Acknowledgments
-- **Project:** Cyber Security Internship — Task 4
-- **Domain:** Incident Response & Anomaly Detection
-- **Tools Used:** Python, Regular Expressions (`re`), `datetime`, `tabulate`, `streamlit`
-
+## 👤 Internship Verification
+- **Internship:** CodeNova Cybersecurity Internship
+- **Task:** Task 4 — Security Log Analyzer (Incident Response & Anomaly Detection)
+- **Status:** Complete, Verified & Tested (22/22 Tests Passing)

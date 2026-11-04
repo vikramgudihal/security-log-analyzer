@@ -1,305 +1,290 @@
 """
-Interactive Web Application for Security Log Analysis (Streamlit Interface).
-TASK 4: Incident Response & Anomaly Detection Dashboard.
+Flask Web Application for Security Log Analyzer (CodeNova Task 4).
+Full SOC-style interface featuring Dashboards, Event Filtering, Incident Inspection, and Report Generation.
 """
 
 import os
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-from src.parsers import LogParser
-from src.analyzer import SecurityLogAnalyzer
-from src.reporter import SecurityReportGenerator
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response, send_file
+from werkzeug.utils import secure_filename
+from config import Config
+from analyzer import MasterParser, DetectionEngine, ReportGenerator
 
-st.set_page_config(
-    page_title="SOC Anomaly & Incident Response Dashboard",
-    page_icon="🛡️",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+app = Flask(__name__)
+app.config.from_object(Config)
 
-# Custom Styling
-st.markdown(
-    """
-    <style>
-    .main-header {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #1E293B;
-        margin-bottom: 0px;
-    }
-    .sub-header {
-        font-size: 1.05rem;
-        color: #64748B;
-        margin-bottom: 25px;
-    }
-    .metric-card {
-        background-color: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 10px;
-        padding: 16px;
-        text-align: center;
-    }
-    .badge-critical {
-        background-color: #FEE2E2;
-        color: #991B1B;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-weight: bold;
-    }
-    .badge-high {
-        background-color: #FFEDD5;
-        color: #9A3412;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-weight: bold;
-    }
-    .badge-routine {
-        background-color: #DCFCE7;
-        color: #166534;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-weight: bold;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+# Ensure required directories exist
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['REPORTS_FOLDER'], exist_ok=True)
+os.makedirs(app.config['SAMPLES_FOLDER'], exist_ok=True)
 
-# Sidebar Controls
-st.sidebar.title("🛡️ Analyzer Controls")
-st.sidebar.markdown("Configure parsing & anomaly thresholds:")
+# In-memory storage for the active analysis session
+SESSION_DATA = {
+    "filename": "brute_force_sample.log",
+    "events": [],
+    "stats": {},
+    "analysis": {},
+}
 
-sample_option = st.sidebar.selectbox(
-    "Select Sample Log or Upload",
-    ["logs/auth.log (Linux SSH & Brute-Force)", "logs/nginx_access.log (Web Exploits & SQLi)", "logs/test_mixed.log (Multi-Vector Incident)", "Upload Custom Log File"],
-)
 
-uploaded_file = None
-if sample_option == "Upload Custom Log File":
-    uploaded_file = st.sidebar.file_uploader("Upload server log file (.log, .txt)", type=["log", "txt"])
+def load_and_analyze(content: str, filename: str):
+    """Parses log content, runs detection engine, and stores in session."""
+    parser = MasterParser(default_year=app.config['DEFAULT_YEAR'], timezone=app.config['TIMEZONE'])
+    events, stats = parser.parse_content(content)
 
-st.sidebar.markdown("---")
-st.sidebar.subheader("Detection Thresholds")
-failed_threshold = st.sidebar.slider("Failed Login Threshold", min_value=2, max_value=20, value=5, help="Tally of failed logins per IP to trigger alert")
-burst_count = st.sidebar.slider("Burst Failure Count", min_value=2, max_value=10, value=4, help="Consecutive attempts within window")
-burst_window = st.sidebar.slider("Burst Window (Seconds)", min_value=10, max_value=300, value=60, help="Window to detect rapid brute-force")
-biz_start = st.sidebar.slider("Business Hours Start (Hour)", min_value=0, max_value=23, value=8)
-biz_end = st.sidebar.slider("Business Hours End (Hour)", min_value=0, max_value=23, value=18)
+    detector = DetectionEngine(
+        failed_low_min=app.config['FAILED_LOGIN_LOW_MIN'],
+        failed_med_min=app.config['FAILED_LOGIN_MED_MIN'],
+        failed_high_min=app.config['FAILED_LOGIN_HIGH_MIN'],
+        burst_count=app.config['BURST_COUNT_THRESHOLD'],
+        burst_window_seconds=app.config['BURST_WINDOW_SECONDS'],
+        multiple_users_threshold=app.config['MULTIPLE_USERNAMES_THRESHOLD'],
+        http_burst_threshold=app.config['HTTP_ERROR_BURST_THRESHOLD'],
+        business_start=app.config['BUSINESS_HOURS_START'],
+        business_end=app.config['BUSINESS_HOURS_END'],
+    )
+    analysis = detector.analyze(events)
 
-# Load log content
-log_text = ""
-log_filename = ""
+    SESSION_DATA["filename"] = filename
+    SESSION_DATA["events"] = events
+    SESSION_DATA["stats"] = stats.to_dict()
+    SESSION_DATA["analysis"] = analysis
 
-if uploaded_file is not None:
-    log_text = uploaded_file.getvalue().decode("utf-8", errors="replace")
-    log_filename = uploaded_file.name
-else:
-    file_path = sample_option.split()[0]
-    log_filename = os.path.basename(file_path)
-    if os.path.exists(file_path):
-        with open(file_path, "r", encoding="utf-8", errors="replace") as f:
-            log_text = f.read()
+
+# Initialize with default sample log on startup
+default_sample_path = os.path.join(app.config['SAMPLES_FOLDER'], "mixed_sample.log")
+if os.path.exists(default_sample_path):
+    with open(default_sample_path, "r", encoding="utf-8", errors="replace") as f:
+        load_and_analyze(f.read(), "mixed_sample.log")
+
+
+def allowed_file(filename: str) -> bool:
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+
+@app.route('/')
+def index():
+    """Upload and initial landing page with sample log triggers."""
+    samples = [
+        {"name": "normal_auth.log", "desc": "Legitimate enterprise authentications during business hours (Alice, Bob)."},
+        {"name": "brute_force_sample.log", "desc": "High-velocity SSH dictionary attack & bursts from 203.0.113.88."},
+        {"name": "off_hours_sample.log", "desc": "Nighttime authentication attempts (02:14 - 05:22) and root access."},
+        {"name": "web_access_sample.log", "desc": "Web access logs with SQLi, Directory Traversal, and HTTP 401/403 bursts."},
+        {"name": "mixed_sample.log", "desc": "Comprehensive multi-vector dataset with malformed lines and breach alerts."},
+    ]
+    return render_template('index.html', samples=samples, current_file=SESSION_DATA["filename"])
+
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    """Handles file uploads with validation and error checking."""
+    if 'logfile' not in request.files:
+        flash('No file part selected in request.', 'error')
+        return redirect(url_for('index'))
+
+    file = request.files['logfile']
+    if file.filename == '':
+        flash('No file was selected for upload.', 'error')
+        return redirect(url_for('index'))
+
+    if file and allowed_file(file.filename):
+        safe_name = secure_filename(file.filename)
+        # Read content directly into memory (security: do not execute or persist permanently)
+        try:
+            content = file.read().decode('utf-8', errors='replace')
+            if not content.strip():
+                flash('The uploaded log file is empty. Please upload a valid log file.', 'warning')
+                return redirect(url_for('index'))
+
+            load_and_analyze(content, safe_name)
+            flash(f"Successfully processed '{safe_name}'! Detected: {SESSION_DATA['stats']['format_detected']}.", 'success')
+            return redirect(url_for('dashboard'))
+        except Exception as e:
+            flash(f"Error parsing log file: {str(e)}", 'error')
+            return redirect(url_for('index'))
     else:
-        st.error(f"Sample log file '{file_path}' not found.")
+        flash('Invalid file format. Only sanitized .log and .txt files are supported.', 'error')
+        return redirect(url_for('index'))
 
-# Dashboard Title
-st.markdown("<div class='main-header'>🛡️ Security Log Analyzer & Incident Response Engine</div>", unsafe_allow_html=True)
-st.markdown(
-    "<div class='sub-header'>Real-Time Anomaly Detection, Brute-Force Identification & Automated Report Generation | Task 4</div>",
-    unsafe_allow_html=True,
-)
 
-if log_text:
-    # Parsing
-    parser = LogParser()
-    entries = []
-    for idx, line in enumerate(log_text.splitlines(), start=1):
-        parsed = parser.parse_line(line, line_number=idx)
-        if parsed:
-            entries.append(parsed)
+@app.route('/sample/<sample_name>')
+def load_sample(sample_name):
+    """Loads a pre-packaged synthetic sample log."""
+    safe_name = secure_filename(sample_name)
+    sample_path = os.path.join(app.config['SAMPLES_FOLDER'], safe_name)
+    if os.path.exists(sample_path):
+        with open(sample_path, 'r', encoding='utf-8', errors='replace') as f:
+            content = f.read()
+        load_and_analyze(content, safe_name)
+        flash(f"Loaded synthetic dataset '{safe_name}'!", 'info')
+        return redirect(url_for('dashboard'))
+    else:
+        flash(f"Sample '{safe_name}' not found.", 'error')
+        return redirect(url_for('index'))
 
-    analyzer = SecurityLogAnalyzer(
-        failed_login_threshold=failed_threshold,
-        burst_threshold=burst_count,
-        burst_window_seconds=burst_window,
-        business_start_hour=biz_start,
-        business_end_hour=biz_end,
-    )
-    result = analyzer.analyze(entries)
-    reporter = SecurityReportGenerator(result, log_filename=log_filename)
-    markdown_report = reporter.generate_markdown()
-    text_report = reporter.generate_text()
 
-    # KPI Top Row
-    kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
-    with kpi1:
-        st.metric("Total Logs Parsed", result.total_logs_analyzed)
-    with kpi2:
-        st.metric("Critical Anomalies", result.severity_counts.get("CRITICAL", 0))
-    with kpi3:
-        st.metric("High Threats", result.severity_counts.get("HIGH", 0))
-    with kpi4:
-        st.metric("Malicious IPs", len(result.malicious_attacks))
-    with kpi5:
-        st.metric("Routine Typos", len(result.routine_errors))
+@app.route('/dashboard')
+def dashboard():
+    """SOC Executive Dashboard displaying statistics, charts, and recent events."""
+    a = SESSION_DATA["analysis"]
+    stats = SESSION_DATA["stats"]
+    events = SESSION_DATA["events"]
 
-    st.markdown("---")
+    # Recent events (first 10 for dashboard widget)
+    recent_events = [e.to_dict() for e in events[:10]]
 
-    # Main Tabs
-    tab_overview, tab_ips, tab_anomalies, tab_diff, tab_report, tab_playbook = st.tabs(
-        [
-            "📊 Executive Dashboard",
-            "🌐 Source IP Intel",
-            "🚨 Flagged Anomalies",
-            "⚖️ Routine vs Malicious",
-            "📄 Exportable Reports",
-            "🛡️ Remediation Playbook",
-        ]
+    # Incidents to dict
+    incidents_dict = [inc.to_dict() for inc in a.get("incidents", [])]
+
+    return render_template(
+        'dashboard.html',
+        filename=SESSION_DATA["filename"],
+        total_events=a.get("total_events", 0),
+        successful_logins=a.get("successful_logins", 0),
+        failed_logins=a.get("failed_logins", 0),
+        suspicious_ip_count=a.get("suspicious_ip_count", 0),
+        detected_anomalies_count=a.get("detected_anomalies_count", 0),
+        severity_counts=a.get("severity_counts", {}),
+        top_suspicious_ips=a.get("top_suspicious_ips", [])[:5],
+        recent_events=recent_events,
+        incidents=incidents_dict[:5],
+        stats=stats,
+        hourly_activity=a.get("hourly_activity", {})
     )
 
-    with tab_overview:
-        col_left, col_right = st.columns([1, 1])
 
-        with col_left:
-            st.subheader("Threat Severity Distribution")
-            sev_data = pd.DataFrame(
-                list(result.severity_counts.items()),
-                columns=["Severity", "Count"]
-            ).set_index("Severity")
-            st.bar_chart(sev_data, color="#E11D48")
+@app.route('/events')
+def events():
+    """Security Events Explorer with full search and filtering."""
+    all_events = [e.to_dict() for e in SESSION_DATA["events"]]
 
-        with col_right:
-            st.subheader("Top Offending Source IPs")
-            if result.top_offending_ips:
-                top_df = pd.DataFrame(
-                    result.top_offending_ips,
-                    columns=["IP Address", "Failed Logins"]
-                ).set_index("IP Address")
-                st.bar_chart(top_df, color="#2563EB")
-            else:
-                st.info("No repeated failed login attempts recorded.")
+    # Filtering parameters from query string
+    ip_filter = request.args.get('ip', '').strip()
+    user_filter = request.args.get('user', '').strip()
+    event_type_filter = request.args.get('event_type', '').strip()
+    status_filter = request.args.get('status', '').strip()
 
-        st.subheader("Log Activity Snapshot")
-        log_sample_df = pd.DataFrame([
-            {
-                "Line": e.line_number,
-                "Timestamp": e.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                "Source IP": e.ip,
-                "Type": e.log_type,
-                "Event": e.event_type,
-                "Target User / URI": e.user or (e.url[:40] if e.url else "N/A"),
-                "HTTP Status / Port": e.status_code or e.port or "-",
-            }
-            for e in entries[:15]
-        ])
-        st.dataframe(log_sample_df, use_container_width=True)
+    filtered = all_events
+    if ip_filter:
+        filtered = [e for e in filtered if ip_filter.lower() in e["source_ip"].lower()]
+    if user_filter:
+        filtered = [e for e in filtered if user_filter.lower() in e["username"].lower()]
+    if event_type_filter and event_type_filter != "ALL":
+        filtered = [e for e in filtered if e["event_type"] == event_type_filter]
+    if status_filter and status_filter != "ALL":
+        filtered = [e for e in filtered if e["auth_status"] == status_filter]
 
-    with tab_ips:
-        st.subheader("Source IP Threat Profiling & Activity Matrix")
-        ip_rows = []
-        for ip, s in result.ip_summaries.items():
-            ip_rows.append({
-                "Source IP": ip,
-                "Total Events": s.total_events,
-                "Failed Logins": s.failed_logins,
-                "Successes": s.successful_logins,
-                "Targeted Users": ", ".join(s.targeted_users) or "N/A",
-                "Burst Detected": "🚨 YES" if s.is_burst_detected else "No",
-                "Off-Hours Activity": "⚠️ YES" if s.is_off_hours_active else "No",
-                "Classification": s.classification,
-                "Threat Severity": s.threat_severity,
-                "Threshold Breached": "CRITICAL / HIGH" if s.failed_logins >= failed_threshold else "Normal",
-            })
-        if ip_rows:
-            ip_df = pd.DataFrame(ip_rows).sort_values(by="Failed Logins", ascending=False)
-            st.dataframe(ip_df, use_container_width=True)
+    # Sort recent first
+    filtered.sort(key=lambda x: x["timestamp"], reverse=True)
 
-    with tab_anomalies:
-        st.subheader("Chronological Incident & Anomaly Feed")
-        if result.anomalies:
-            anom_rows = [
-                {
-                    "Timestamp": a.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                    "Source IP": a.ip,
-                    "Anomaly Vector": a.anomaly_type,
-                    "Severity": a.severity,
-                    "Technical Detail": a.description,
-                }
-                for a in result.anomalies
-            ]
-            st.dataframe(pd.DataFrame(anom_rows), use_container_width=True)
-        else:
-            st.success("No anomalies or threats detected within the current thresholds.")
+    return render_template(
+        'events.html',
+        events=filtered,
+        total_count=len(all_events),
+        filtered_count=len(filtered),
+        ip_filter=ip_filter,
+        user_filter=user_filter,
+        event_type_filter=event_type_filter,
+        status_filter=status_filter,
+        filename=SESSION_DATA["filename"],
+    )
 
-    with tab_diff:
-        st.subheader("Differentiating Routine Mistakes from Malicious Attacks")
-        st.write(
-            "Security systems must avoid false positives. This engine cross-references failure count, business hours, and account validity."
+
+@app.route('/incidents')
+def incidents():
+    """Detected Incidents and Anomalies page."""
+    a = SESSION_DATA["analysis"]
+    all_incidents = [inc.to_dict() for inc in a.get("incidents", [])]
+
+    sev_filter = request.args.get('severity', '').strip()
+    filtered = all_incidents
+    if sev_filter and sev_filter != "ALL":
+        filtered = [inc for inc in filtered if inc["severity"] == sev_filter]
+
+    return render_template(
+        'incidents.html',
+        incidents=filtered,
+        total_count=len(all_incidents),
+        filtered_count=len(filtered),
+        sev_filter=sev_filter,
+        severity_counts=a.get("severity_counts", {}),
+        filename=SESSION_DATA["filename"]
+    )
+
+
+@app.route('/reports')
+def reports():
+    """Report Generation & Preview Page."""
+    a = SESSION_DATA["analysis"]
+    events = SESSION_DATA["events"]
+    filename = SESSION_DATA["filename"]
+
+    generator = ReportGenerator(a, events, filename=filename)
+    md_content = generator.generate_markdown()
+    txt_content = generator.generate_text()
+
+    return render_template(
+        'reports.html',
+        filename=filename,
+        md_content=md_content,
+        txt_content=txt_content,
+        analysis=a
+    )
+
+
+@app.route('/export/<format_type>')
+def export_report(format_type):
+    """Exports and downloads reports in Markdown, Plaintext, or CSV."""
+    a = SESSION_DATA["analysis"]
+    events = SESSION_DATA["events"]
+    filename = SESSION_DATA["filename"]
+    base_name = os.path.splitext(filename)[0]
+
+    generator = ReportGenerator(a, events, filename=filename)
+
+    if format_type == "markdown":
+        content = generator.generate_markdown()
+        return Response(
+            content,
+            mimetype="text/markdown",
+            headers={"Content-Disposition": f"attachment;filename=Security_Report_{base_name}.md"}
         )
-
-        d_col1, d_col2 = st.columns(2)
-        with d_col1:
-            st.markdown("### 🟢 Benign / Routine Login Mistakes")
-            st.caption("Low failures (< threshold), standard business hours, genuine user typos.")
-            if result.routine_errors:
-                st.dataframe(pd.DataFrame(result.routine_errors), use_container_width=True)
-            else:
-                st.info("No routine login typos observed.")
-
-        with d_col2:
-            st.markdown("### 🔴 Confirmed Malicious Attacks")
-            st.caption("Automated bursts, exploit signatures, dictionary attacks, or off-hours intrusions.")
-            if result.malicious_attacks:
-                st.dataframe(pd.DataFrame(result.malicious_attacks), use_container_width=True)
-            else:
-                st.info("No malicious attacks detected.")
-
-    with tab_report:
-        st.subheader("Generated Security Incident Report")
-        st.caption("Export publication-grade Markdown and ASCII reports directly for stakeholders or documentation.")
-
-        rep_col1, rep_col2 = st.columns(2)
-        with rep_col1:
-            st.download_button(
-                label="📥 Download Markdown Report (.md)",
-                data=markdown_report,
-                file_name=f"Security_Incident_Report_{log_filename}.md",
-                mime="text/markdown",
-            )
-        with rep_col2:
-            st.download_button(
-                label="📥 Download Plaintext Report (.txt)",
-                data=text_report,
-                file_name=f"Security_Incident_Report_{log_filename}.txt",
-                mime="text/plain",
-            )
-
-        st.markdown("---")
-        st.markdown(markdown_report)
-
-    with tab_playbook:
-        st.subheader("Incident Response & Containment Playbook")
-        st.markdown("Automated containment firewall commands for detected malicious IPs:")
-
-        fw_rules = []
-        for ip, s in result.ip_summaries.items():
-            if s.threat_severity in ("HIGH", "CRITICAL"):
-                fw_rules.append(f"# Block {ip} - {s.classification} ({s.threat_severity})\niptables -A INPUT -s {ip} -j DROP\nufw deny from {ip}\n")
-
-        if fw_rules:
-            st.code("\n".join(fw_rules), language="bash")
-        else:
-            st.info("No immediate perimeter blocks required for this log dataset.")
-
-        st.markdown("#### Recommended Hardening Steps:")
-        st.markdown(
-            """
-            1. **SSH Key Enforcement:** Ensure `PasswordAuthentication no` in `/etc/ssh/sshd_config`.
-            2. **Fail2ban Integration:** Activate `jail.local` with ban-time scaling for repeated offenders.
-            3. **WAF Rule Implementation:** Block payloads containing `UNION SELECT` and `../` patterns at edge proxy.
-            """
+    elif format_type == "text":
+        content = generator.generate_text()
+        return Response(
+            content,
+            mimetype="text/plain",
+            headers={"Content-Disposition": f"attachment;filename=Security_Report_{base_name}.txt"}
         )
-else:
-    st.warning("Please upload or select a log file to begin analysis.")
+    elif format_type == "csv":
+        content = generator.generate_csv()
+        return Response(
+            content,
+            mimetype="text/csv",
+            headers={"Content-Disposition": f"attachment;filename=Security_Incidents_{base_name}.csv"}
+        )
+    else:
+        flash("Unsupported export format.", "error")
+        return redirect(url_for('reports'))
 
+
+@app.route('/about')
+def about():
+    """About page outlining methodology, MITRE ATT&CK mappings, and architecture."""
+    return render_template('about.html')
+
+
+@app.route('/api/stats')
+def api_stats():
+    """JSON API endpoint for dynamic dashboard chart updates."""
+    a = SESSION_DATA["analysis"]
+    return jsonify({
+        "total_events": a.get("total_events", 0),
+        "failed_logins": a.get("failed_logins", 0),
+        "successful_logins": a.get("successful_logins", 0),
+        "severity_counts": a.get("severity_counts", {}),
+        "hourly_activity": a.get("hourly_activity", {}),
+    })
+
+
+if __name__ == '__main__':
+    app.run(debug=True, host='127.0.0.1', port=5000)

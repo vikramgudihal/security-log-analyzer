@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Security Incident Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Security Incident Reports</h1>
+        <p class="page-subtitle">Exportable, publication-ready SOC reports for: <strong>{{ filename }}</strong></p>
+    </div>
+    <div class="export-btn-group">
+        <a href="{{ url_for('export_report', format_type='markdown') }}" class="btn btn-primary">
+            📄 Download Markdown (.md)
+        </a>
+        <a href="{{ url_for('export_report', format_type='text') }}" class="btn btn-secondary">
+            📑 Download Plaintext (.txt)
+        </a>
+        <a href="{{ url_for('export_report', format_type='csv') }}" class="btn btn-outline">
+            📊 Download Incidents (.csv)
+        </a>
+    </div>
+</div>
+
+<div class="grid-2-col">
+    <!-- Report Overview & Content Guide -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📋 11-Point Report Specification Compliance</h2>
+            <span class="badge-success">SOC Standard</span>
+        </div>
+        <div class="card-body">
+            <p>Every generated report automatically contains the 11 essential incident response criteria:</p>
+            <ol class="report-compliance-list">
+                <li><strong>Executive Summary</strong> with environmental risk posture</li>
+                <li><strong>Analysis Metadata</strong> (timestamps, filename, UTC timezone basis)</li>
+                <li><strong>Total Events</strong> and line count verification</li>
+                <li><strong>Successful Logins</strong> tally</li>
+                <li><strong>Failed Logins</strong> and rate analysis</li>
+                <li><strong>Suspicious IP Addresses</strong> table with highest severity</li>
+                <li><strong>Detected Anomalies</strong> categorized by MITRE ATT&CK vectors</li>
+                <li><strong>Severity Classification</strong> (LOW, MEDIUM, HIGH, CRITICAL)</li>
+                <li><strong>Relevant Event Evidence</strong> (raw extracted log samples)</li>
+                <li><strong>Recommended Investigation Steps</strong> & firewall rules</li>
+                <li><strong>False-Positive Disclaimer</strong> highlighting behavioral detection context</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Plaintext Quick Preview -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📑 Plaintext ASCII Grid Preview</h2>
+            <a href="{{ url_for('export_report', format_type='text') }}" class="card-link">Download .TXT →</a>
+        </div>
+        <div class="card-body">
+            <pre class="report-preview-box"><code>{{ txt_content }}</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- Rendered Markdown Full Report Section -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h2 class="card-title">📄 Formatted Markdown Report View</h2>
+        <a href="{{ url_for('export_report', format_type='markdown') }}" class="card-link">Download .MD →</a>
+    </div>
+    <div class="card-body markdown-rendered-box">
+        <pre class="report-markdown-pre"><code>{{ md_content }}</code></pre>
+    </div>
+</div>
+{% endblock %}

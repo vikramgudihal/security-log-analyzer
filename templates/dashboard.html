@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}SOC Security Dashboard{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="dashboard-header">
+    <div>
+        <h1 class="page-title">SOC Incident & Anomaly Dashboard</h1>
+        <p class="page-subtitle">Telemetry & Incident Response Posture for: <span class="active-log-badge">📄 {{ filename }}</span> ({{ stats.format_detected }})</p>
+    </div>
+    <div class="dashboard-actions">
+        <a href="{{ url_for('export_report', format_type='markdown') }}" class="btn btn-primary btn-sm">📥 Export .MD</a>
+        <a href="{{ url_for('export_report', format_type='csv') }}" class="btn btn-secondary btn-sm">📥 Export .CSV</a>
+        <a href="{{ url_for('index') }}" class="btn btn-outline btn-sm">🔄 Switch Dataset</a>
+    </div>
+</div>
+
+<!-- 6 KPI Metric Cards Row -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-label">Total Events Analyzed</div>
+        <div class="metric-value">{{ total_events }}</div>
+        <div class="metric-sub">Processed: {{ stats.parsed_events }} | Malformed: {{ stats.failed_lines }}</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Successful Logins</div>
+        <div class="metric-value text-success">{{ successful_logins }}</div>
+        <div class="metric-sub">Legitimate authentications</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Failed Logins</div>
+        <div class="metric-value text-danger">{{ failed_logins }}</div>
+        <div class="metric-sub">Authentication errors & bursts</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Suspicious Source IPs</div>
+        <div class="metric-value text-warning">{{ suspicious_ip_count }}</div>
+        <div class="metric-sub">Flagged threat origins</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Detected Anomalies</div>
+        <div class="metric-value text-primary">{{ detected_anomalies_count }}</div>
+        <div class="metric-sub">Actionable security alerts</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Critical Incidents</div>
+        <div class="metric-value text-critical">{{ severity_counts.CRITICAL or 0 }}</div>
+        <div class="metric-sub">Immediate response required</div>
+    </div>
+</div>
+
+<!-- Visual Analytics & Charts Section -->
+<div class="grid-2-col charts-row">
+    <!-- Chart 1: Failed Login Activity Timeline -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📈 Authentication Activity Timeline</h2>
+            <span class="badge-neutral">Hourly Aggregation</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="loginActivityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Incident Severity Distribution -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🎯 Incident Severity Distribution</h2>
+            <span class="badge-neutral">4-Tier SOC Classification</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-container-doughnut">
+                <canvas id="severityDoughnutChart"></canvas>
+            </div>
+            <div class="severity-legend">
+                <span class="legend-item"><span class="legend-color bg-critical"></span> Critical: {{ severity_counts.CRITICAL or 0 }}</span>
+                <span class="legend-item"><span class="legend-color bg-high"></span> High: {{ severity_counts.HIGH or 0 }}</span>
+                <span class="legend-item"><span class="legend-color bg-medium"></span> Medium: {{ severity_counts.MEDIUM or 0 }}</span>
+                <span class="legend-item"><span class="legend-color bg-low"></span> Low: {{ severity_counts.LOW or 0 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Threat Matrix: Top Suspicious IPs and Flagged Incidents -->
+<div class="grid-2-col">
+    <!-- Top Suspicious IPs -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🌐 Top Offending Source IPs</h2>
+            <a href="{{ url_for('events') }}" class="card-link">View All Events →</a>
+        </div>
+        <div class="card-body">
+            {% if top_suspicious_ips %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Source IP</th>
+                            <th>Failures</th>
+                            <th>Targeted Users</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ip in top_suspicious_ips %}
+                        <tr>
+                            <td><code>{{ ip.ip }}</code></td>
+                            <td><strong class="text-danger">{{ ip.failed_logins }}</strong></td>
+                            <td>{{ ip.unique_users|join(", ") if ip.unique_users else "N/A" }}</td>
+                            <td>
+                                <span class="badge-{{ ip.highest_severity|lower }}">{{ ip.highest_severity }}</span>
+                            </td>
+                            <td>
+                                <span class="text-danger">🚨 Flagged</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted p-3">No suspicious IP addresses detected in current dataset.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Flagged Incidents Summary -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🚨 Recent Incidents & Threat Detections</h2>
+            <a href="{{ url_for('incidents') }}" class="card-link">All Incidents ({{ detected_anomalies_count }}) →</a>
+        </div>
+        <div class="card-body">
+            {% if incidents %}
+            <div class="incidents-mini-list">
+                {% for inc in incidents %}
+                <div class="incident-mini-item">
+                    <div class="incident-mini-top">
+                        <span class="badge-{{ inc.severity|lower }}">{{ inc.severity }}</span>
+                        <strong>{{ inc.rule_name }}</strong>
+                        <span class="text-muted text-xs">{{ inc.timestamp }}</span>
+                    </div>
+                    <p class="incident-mini-desc">{{ inc.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-success p-3">✔ Zero security incidents detected. Nominal operational state.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Security Events Table -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">📜 Recent Log Event Feed</h2>
+        <a href="{{ url_for('events') }}" class="card-link">Search & Filter Events →</a>
+    </div>
+    <div class="card-body">
+        {% if recent_events %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Timestamp (UTC)</th>
+                        <th>Source IP</th>
+                        <th>Event Type</th>
+                        <th>Status</th>
+                        <th>User / URI</th>
+                        <th>Raw Message Extract</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in recent_events %}
+                    <tr>
+                        <td>{{ e.id }}</td>
+                        <td><code>{{ e.timestamp }}</code></td>
+                        <td><code>{{ e.source_ip }}</code></td>
+                        <td>
+                            <span class="event-tag event-{{ e.event_type|lower }}">{{ e.event_type }}</span>
+                        </td>
+                        <td>
+                            {% if e.auth_status == 'SUCCESS' %}
+                                <span class="badge-success">SUCCESS</span>
+                            {% elif e.auth_status == 'FAILURE' %}
+                                <span class="badge-danger">FAILURE</span>
+                            {% else %}
+                                <span class="badge-neutral">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ e.username if e.username != 'N/A' else e.url }}</td>
+                        <td class="code-cell">{{ e.message }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted p-3">No events currently loaded.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Pass Python backend analysis to Chart.js
+    const severityData = {
+        CRITICAL: {{ severity_counts.CRITICAL or 0 }},
+        HIGH: {{ severity_counts.HIGH or 0 }},
+        MEDIUM: {{ severity_counts.MEDIUM or 0 }},
+        LOW: {{ severity_counts.LOW or 0 }}
+    };
+
+    const hourlyActivityData = {{ hourly_activity|tojson }};
+    initDashboardCharts(severityData, hourlyActivityData);
+</script>
+{% endblock %}

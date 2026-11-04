@@ -1,0 +1,8 @@
+Oct 21 08:30:15 server sshd[1023]: Accepted publickey for alice from 192.168.1.10 port 54322 ssh2: RSA SHA256:abc123legit
+Oct 21 09:15:02 server sshd[1050]: Failed password for bob from 192.168.1.45 port 51230 ssh2
+Oct 21 09:15:22 server sshd[1050]: Accepted password for bob from 192.168.1.45 port 51230 ssh2
+Oct 21 10:05:40 server sshd[1101]: Accepted publickey for devops_admin from 10.0.0.15 port 49811 ssh2: RSA SHA256:dev999
+Oct 21 11:20:11 server sshd[1145]: Failed password for charlie from 192.168.1.80 port 52110 ssh2
+Oct 21 11:21:05 server sshd[1145]: Accepted password for charlie from 192.168.1.80 port 52110 ssh2
+Oct 21 14:10:00 server sshd[1200]: Accepted password for david from 192.168.1.95 port 53100 ssh2
+Oct 21 17:30:00 server sshd[1250]: Accepted password for bob from 192.168.1.45 port 51880 ssh2

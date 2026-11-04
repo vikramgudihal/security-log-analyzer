@@ -1,6 +1,7 @@
-# Cybersecurity Internship - Task 4: Security Log Analyzer Dependencies
-tabulate>=0.9.0
-streamlit>=1.30.0
+# CodeNova Cybersecurity Internship - Task 4: Security Log Analyzer
+Flask>=3.0.0
+Werkzeug>=3.0.0
 pandas>=2.0.0
+tabulate>=0.9.0
+pytest>=8.0.0
 rich>=13.0.0
-
