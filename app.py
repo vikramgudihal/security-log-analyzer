@@ -381,8 +381,8 @@ def export_report(format_type):
 
 @app.route('/about')
 def about():
-    """About page outlining methodology, MITRE ATT&CK mappings, and architecture."""
-    return render_template('about.html')
+    """Redirect about requests to dashboard."""
+    return redirect(url_for('dashboard'))
 
 
 @app.route('/api/stats')
