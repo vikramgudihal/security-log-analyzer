@@ -93,3 +93,4 @@ class MasterParser:
             stats = ParseStats(total_lines=0, failed_lines=0, format_detected="Read Error")
             stats.parse_errors.append(str(e))
             return [], stats
+

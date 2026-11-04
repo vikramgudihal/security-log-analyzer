@@ -72,3 +72,4 @@ def test_master_parser_with_malformed_lines():
     assert stats.parsed_events == 2
     assert stats.failed_lines >= 1
     assert len(stats.parse_errors) >= 1
+

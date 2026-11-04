@@ -1,5 +1,5 @@
 /**
- * CodeNova Security Log Analyzer - Frontend JavaScript
+ * CodeNova Security Command Center - Frontend Controller
  * Integrates Chart.js visualizations, drop zone listeners, and UI interactivity.
  */
 
@@ -30,14 +30,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (files.length > 0) {
                 fileInput.files = files;
                 if (selectedFileName) {
-                    selectedFileName.textContent = `Selected: ${files[0].name} (${(files[0].size / 1024).toFixed(1)} KB)`;
+                    selectedFileName.textContent = `SELECTED FOR INGESTION: ${files[0].name} (${(files[0].size / 1024).toFixed(1)} KB)`;
                 }
             }
         });
 
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0 && selectedFileName) {
-                selectedFileName.textContent = `Selected: ${fileInput.files[0].name} (${(fileInput.files[0].size / 1024).toFixed(1)} KB)`;
+                selectedFileName.textContent = `SELECTED FOR INGESTION: ${fileInput.files[0].name} (${(fileInput.files[0].size / 1024).toFixed(1)} KB)`;
             }
         });
     }
@@ -49,6 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
  * @param {Object} hourlyActivity - Chronological hourly event breakdown
  */
 function initDashboardCharts(severityData, hourlyActivity) {
+    const isDark = document.body.classList.contains('theme-soc-dark');
+    const textColor = isDark ? '#94a3b8' : '#475569';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+
     // 1. Severity Doughnut Chart
     const ctxDoughnut = document.getElementById('severityDoughnutChart');
     if (ctxDoughnut) {
@@ -67,31 +71,29 @@ function initDashboardCharts(severityData, hourlyActivity) {
                 datasets: [{
                     data: dataValues,
                     backgroundColor: [
-                        '#991b1b', // Critical: Dark Red
-                        '#dc2626', // High: Red
-                        '#ea580c', // Medium: Orange
-                        '#16a34a'  // Low: Green
+                        '#ef4444', // Critical: Red
+                        '#f87171', // High: Light Red
+                        '#f59e0b', // Medium: Orange
+                        '#10b981'  // Low: Green
                     ],
                     borderWidth: 2,
-                    borderColor: '#ffffff'
+                    borderColor: isDark ? '#111827' : '#ffffff'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return ` ${context.label}: ${context.raw} alerts`;
+                                return ` ${context.label}: ${context.raw} incidents`;
                             }
                         }
                     }
                 },
-                cutout: '68%'
+                cutout: '72%'
             }
         });
     }
@@ -112,16 +114,16 @@ function initDashboardCharts(severityData, hourlyActivity) {
                 labels: friendlyLabels.length > 0 ? friendlyLabels : ['No Activity Recorded'],
                 datasets: [
                     {
-                        label: 'Failed Logins',
+                        label: 'Failed Logins (Anomalies)',
                         data: failedSeries.length > 0 ? failedSeries : [0],
-                        backgroundColor: '#dc2626',
-                        borderRadius: 4
+                        backgroundColor: '#ef4444',
+                        borderRadius: 3
                     },
                     {
-                        label: 'Successful Logins',
+                        label: 'Authorized Logins',
                         data: successSeries.length > 0 ? successSeries : [0],
-                        backgroundColor: '#16a34a',
-                        borderRadius: 4
+                        backgroundColor: '#10b981',
+                        borderRadius: 3
                     }
                 ]
             },
@@ -131,20 +133,21 @@ function initDashboardCharts(severityData, hourlyActivity) {
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { font: { family: 'Inter', size: 11 } }
+                        ticks: { color: textColor, font: { family: 'JetBrains Mono', size: 10 } }
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { precision: 0, font: { family: 'Inter', size: 11 } },
-                        grid: { color: '#f1f5f9' }
+                        ticks: { precision: 0, color: textColor, font: { family: 'JetBrains Mono', size: 10 } },
+                        grid: { color: gridColor }
                     }
                 },
                 plugins: {
                     legend: {
                         position: 'top',
                         labels: {
-                            boxWidth: 12,
-                            font: { family: 'Inter', weight: 600 }
+                            color: textColor,
+                            boxWidth: 10,
+                            font: { family: 'Inter', weight: 600, size: 11 }
                         }
                     }
                 }

@@ -45,6 +45,7 @@ class LogEvent:
             "url": self.url or "-",
             "user_agent": self.user_agent or "-",
             "message": html.escape(self.message),
+            "raw_message": self.message,
             "is_invalid_user": self.is_invalid_user,
             "port": self.port or "-",
             "timezone": self.timezone,
@@ -62,6 +63,10 @@ class Incident:
     severity: str                  # 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
     reason: str
     recommended_steps: List[str]
+    mitre_id: str = "T1110"
+    mitre_name: str = "Brute Force"
+    mitre_tactic: str = "Credential Access"
+    kill_chain_phase: str = "Exploitation"
     related_events: List[int] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -75,6 +80,10 @@ class Incident:
             "severity": self.severity,
             "reason": self.reason,
             "recommended_steps": self.recommended_steps,
+            "mitre_id": self.mitre_id,
+            "mitre_name": self.mitre_name,
+            "mitre_tactic": self.mitre_tactic,
+            "kill_chain_phase": self.kill_chain_phase,
             "related_events": self.related_events,
             "metadata": self.metadata,
         }

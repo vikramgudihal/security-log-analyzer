@@ -259,3 +259,4 @@ Alerts are behavioral indicators. Verify context before applying permanent bans.
             ])
 
         return output.getvalue()
+

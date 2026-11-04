@@ -40,3 +40,4 @@ def test_report_generation_formats():
     lines = csv_data.strip().split("\n")
     assert len(lines) >= 2  # Header + at least one incident
     assert "Incident_ID,Timestamp,Source_IP" in lines[0]
+

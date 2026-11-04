@@ -213,3 +213,4 @@ class AuthParser:
             )
 
         return None
+

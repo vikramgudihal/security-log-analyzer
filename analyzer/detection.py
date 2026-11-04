@@ -1,7 +1,7 @@
 """
 Security Anomaly & Intrusion Detection Engine.
 Implements the 7 required SOC detection rules, false-positive differentiation,
-and detailed incident generation.
+MITRE ATT&CK correlation, and detailed incident generation.
 """
 
 from collections import defaultdict
@@ -14,7 +14,7 @@ from config import Config
 
 
 class DetectionEngine:
-    """Core detection engine implementing multi-vector log anomaly detection."""
+    """Core detection engine implementing multi-vector log anomaly detection with MITRE ATT&CK alignment."""
 
     # Attack signatures regexes for Rule 7
     URL_ATTACK_PATTERNS = {
@@ -23,8 +23,12 @@ class DetectionEngine:
             "pattern": re.compile(
                 r"(?i)(union\s+select|select\s+.+\s+from|or\s+['\"]?\d+['\"]?\s*=\s*['\"]?\d+|--|/\*|information_schema|drop\s+table)",
             ),
-            "description": "SQL Injection attempt detected in request URI or query string",
-            "recommendation": "Review database query parameterization; check WAF logs; block attacker IP at firewall."
+            "description": "SQL Injection payload detected in request URI or query parameters",
+            "recommendation": "Review database query parameterization; check WAF logs; block attacker IP at firewall.",
+            "mitre_id": "T1190",
+            "mitre_name": "Exploit Public-Facing Application: SQL Injection",
+            "mitre_tactic": "Initial Access",
+            "kill_chain": "Exploitation"
         },
         "PATH_TRAVERSAL": {
             "severity": "HIGH",
@@ -32,8 +36,12 @@ class DetectionEngine:
                 r"(\.\./|\.\.\\|%2e%2e%2f|%2e%2e\/|\.\.%2f|/etc/passwd|/etc/shadow|win\.ini|boot\.ini)",
                 re.IGNORECASE,
             ),
-            "description": "Path/Directory Traversal attempt detected",
-            "recommendation": "Verify web server root directory access restrictions; sanitize user-supplied file path parameters."
+            "description": "Path / Directory Traversal attempt attempting arbitrary server file retrieval",
+            "recommendation": "Verify web server root directory access restrictions; sanitize user-supplied file path parameters.",
+            "mitre_id": "T1083",
+            "mitre_name": "File and Directory Discovery: Path Traversal",
+            "mitre_tactic": "Discovery",
+            "kill_chain": "Reconnaissance"
         },
         "COMMAND_INJECTION": {
             "severity": "CRITICAL",
@@ -41,8 +49,12 @@ class DetectionEngine:
                 r"(;|\||`|\$\(|\bexec\b|\bsystem\b).*(cat\s+/etc/passwd|whoami|id|bash|powershell|cmd\.exe|wget\s+|curl\s+)",
                 re.IGNORECASE,
             ),
-            "description": "Remote Code / OS Command Injection payload detected",
-            "recommendation": "Isolate affected web application container; check system process tree for unauthorized forks."
+            "description": "Remote Code Execution (RCE) / OS Command Injection payload detected",
+            "recommendation": "Isolate affected web application container; check system process tree for unauthorized forks.",
+            "mitre_id": "T1059",
+            "mitre_name": "Command and Scripting Interpreter",
+            "mitre_tactic": "Execution",
+            "kill_chain": "Exploitation"
         },
         "XSS_ATTACK": {
             "severity": "MEDIUM",
@@ -50,8 +62,12 @@ class DetectionEngine:
                 r"(<script|%3cscript|javascript:|onerror\s*=|onload\s*=|alert\(|<img\s+src=)",
                 re.IGNORECASE,
             ),
-            "description": "Cross-Site Scripting (XSS) probe detected",
-            "recommendation": "Ensure HTML output encoding is enabled across all reflected input parameters."
+            "description": "Cross-Site Scripting (XSS) probe detected in request parameter",
+            "recommendation": "Ensure HTML output encoding is enabled across all reflected input parameters.",
+            "mitre_id": "T1189",
+            "mitre_name": "Drive-by Compromise: Stored / Reflected XSS",
+            "mitre_tactic": "Initial Access",
+            "kill_chain": "Delivery"
         },
         "SENSITIVE_FILE_PROBING": {
             "severity": "HIGH",
@@ -59,8 +75,12 @@ class DetectionEngine:
                 r"(\.env|\.git|\.aws|\.ssh|wp-config|\.bak|\.old|phpinfo\.php|actuator/)",
                 re.IGNORECASE,
             ),
-            "description": "Sensitive configuration or credential file probe detected",
-            "recommendation": "Ensure configuration files and version control directories are blocked by web server rewrite rules."
+            "description": "Probing for sensitive configuration, credentials, or backup artifacts",
+            "recommendation": "Ensure configuration files and version control directories are blocked by web server rewrite rules.",
+            "mitre_id": "T1552",
+            "mitre_name": "Unsecured Credentials: File Probing",
+            "mitre_tactic": "Credential Access",
+            "kill_chain": "Reconnaissance"
         },
         "MALICIOUS_SCANNER": {
             "severity": "HIGH",
@@ -68,8 +88,12 @@ class DetectionEngine:
                 r"(sqlmap|nikto|masscan|nmap|acunetix|dirbuster|gobuster|wpscan|hydra)",
                 re.IGNORECASE,
             ),
-            "description": "Automated security scanner or vulnerability probe detected in User-Agent",
-            "recommendation": "Block scanner IP address; review application endpoints probed during the scan."
+            "description": "Automated security scanner or vulnerability pentest tool user-agent detected",
+            "recommendation": "Block scanner IP address; review application endpoints probed during the scan.",
+            "mitre_id": "T1595.002",
+            "mitre_name": "Active Scanning: Vulnerability Scanning",
+            "mitre_tactic": "Reconnaissance",
+            "kill_chain": "Reconnaissance"
         }
     }
 
@@ -119,6 +143,7 @@ class DetectionEngine:
                 "top_suspicious_ips": [],
                 "routine_errors": [],
                 "hourly_activity": {},
+                "mitre_matrix": {},
             }
 
         events_by_ip = defaultdict(list)
@@ -168,6 +193,7 @@ class DetectionEngine:
                 "is_suspicious": False,
                 "highest_severity": "LOW",
                 "rules_triggered": [],
+                "classification": "BENIGN",
             }
 
             # -------------------------------------------------------------
@@ -195,6 +221,7 @@ class DetectionEngine:
                     })
                 else:
                     ip_summary["is_suspicious"] = True
+                    ip_summary["classification"] = "SUSPICIOUS_BRUTE_FORCE"
                     ip_summary["rules_triggered"].append("Repeated Failed Authentication")
                     incidents.append(
                         Incident(
@@ -210,6 +237,10 @@ class DetectionEngine:
                                 "Verify whether host belongs to corporate IP space or external ISP.",
                                 "If failures continue, apply perimeter firewall block."
                             ],
+                            mitre_id="T1110.001",
+                            mitre_name="Brute Force: Password Guessing",
+                            mitre_tactic="Credential Access",
+                            kill_chain_phase="Exploitation",
                             related_events=[e.id for e in ip_failed_events],
                             metadata={"failed_count": fail_count, "users": unique_users}
                         )
@@ -228,6 +259,7 @@ class DetectionEngine:
                     if delta_sec <= self.burst_window_seconds:
                         burst_sev, burst_reason = SeverityEngine.evaluate_burst(self.burst_count, int(delta_sec))
                         ip_summary["is_suspicious"] = True
+                        ip_summary["classification"] = "BURST_ATTACKER"
                         ip_summary["rules_triggered"].append("Rapid Sequential Login Attempts")
                         incidents.append(
                             Incident(
@@ -246,6 +278,10 @@ class DetectionEngine:
                                     "Trigger temporary rate-limiting / CAPTCHA on login endpoint.",
                                     "Check for automated botnet tool signatures in traffic."
                                 ],
+                                mitre_id="T1110.003",
+                                mitre_name="Brute Force: Password Spraying",
+                                mitre_tactic="Credential Access",
+                                kill_chain_phase="Exploitation",
                                 related_events=[e.id for e in ip_failed_events[i:i + self.burst_count]],
                                 metadata={"duration_seconds": delta_sec, "attempts": self.burst_count}
                             )
@@ -258,6 +294,7 @@ class DetectionEngine:
             # -------------------------------------------------------------
             if len(unique_users) >= self.multiple_users_threshold and fail_count >= 3:
                 ip_summary["is_suspicious"] = True
+                ip_summary["classification"] = "CREDENTIAL_STUFFER"
                 ip_summary["rules_triggered"].append("Multiple Usernames Targeted")
                 incidents.append(
                     Incident(
@@ -273,6 +310,10 @@ class DetectionEngine:
                             "Notify targeted account owners to verify credential hygiene.",
                             "Enforce multi-factor authentication (MFA) across all targeted accounts."
                         ],
+                        mitre_id="T1110.004",
+                        mitre_name="Brute Force: Credential Stuffing",
+                        mitre_tactic="Credential Access",
+                        kill_chain_phase="Exploitation",
                         related_events=[e.id for e in ip_failed_events],
                         metadata={"unique_user_count": len(unique_users), "usernames": unique_users}
                     )
@@ -283,7 +324,6 @@ class DetectionEngine:
             # Rule 4: Successful Login Following Repeated Failed Attempts
             # -------------------------------------------------------------
             if ip_success_events and fail_count >= 3:
-                # Find if any success happened after >= 3 failures
                 first_success = ip_success_events[0]
                 prior_failures = [e for e in ip_failed_events if e.timestamp < first_success.timestamp]
                 if len(prior_failures) >= 3:
@@ -291,6 +331,7 @@ class DetectionEngine:
                         len(prior_failures), first_success.username or "unknown"
                     )
                     ip_summary["is_suspicious"] = True
+                    ip_summary["classification"] = "ACCOUNT_TAKEOVER_ALERT"
                     ip_summary["rules_triggered"].append("Successful Login Following Repeated Failures")
                     incidents.append(
                         Incident(
@@ -309,6 +350,10 @@ class DetectionEngine:
                                 "Terminate active SSH/web session for user if unconfirmed.",
                                 "Rotate user credentials and inspect audit logs for lateral movement."
                             ],
+                            mitre_id="T1078",
+                            mitre_name="Valid Accounts: Account Takeover",
+                            mitre_tactic="Defense Evasion",
+                            kill_chain_phase="Actions on Objectives",
                             related_events=[e.id for e in prior_failures] + [first_success.id],
                             metadata={"prior_failures": len(prior_failures), "user": first_success.username}
                         )
@@ -328,7 +373,6 @@ class DetectionEngine:
                 if sev == "CRITICAL":
                     sev = "HIGH"
 
-                # Record incident if it includes failed attempts or administrative user
                 has_admin = any(u in ("root", "admin", "administrator") for u in off_users)
                 if len(off_hours_events) >= 2 or has_admin:
                     ip_summary["is_suspicious"] = True
@@ -346,6 +390,10 @@ class DetectionEngine:
                                 "Cross-reference with employee shift schedules and maintenance windows.",
                                 "Verify source IP against known corporate VPN egress ranges."
                             ],
+                            mitre_id="T1078.003",
+                            mitre_name="Valid Accounts: Local Accounts (Abnormal Time)",
+                            mitre_tactic="Initial Access",
+                            kill_chain_phase="Initial Access",
                             related_events=[e.id for e in off_hours_events],
                             metadata={"off_hours_count": len(off_hours_events), "users": off_users}
                         )
@@ -358,6 +406,7 @@ class DetectionEngine:
             http_errors = [e for e in ip_events if e.http_status in (401, 403)]
             if len(http_errors) >= self.http_burst_threshold:
                 ip_summary["is_suspicious"] = True
+                ip_summary["classification"] = "WEB_PROBER"
                 ip_summary["rules_triggered"].append("HTTP 401/403 Error Burst")
                 incidents.append(
                     Incident(
@@ -372,6 +421,10 @@ class DetectionEngine:
                             "Review target URI paths in web server access log.",
                             "Check for unauthorized web directory brute force or API abuse."
                         ],
+                        mitre_id="T1595.002",
+                        mitre_name="Active Scanning: Vulnerability Scanning",
+                        mitre_tactic="Reconnaissance",
+                        kill_chain_phase="Reconnaissance",
                         related_events=[e.id for e in http_errors],
                         metadata={"http_error_count": len(http_errors)}
                     )
@@ -387,6 +440,7 @@ class DetectionEngine:
                     for sig_key, sig_data in self.URL_ATTACK_PATTERNS.items():
                         if sig_data["pattern"].search(target_payload):
                             ip_summary["is_suspicious"] = True
+                            ip_summary["classification"] = "ACTIVE_EXPLOITER"
                             rule_tag = f"Attack Signature: {sig_key}"
                             if rule_tag not in ip_summary["rules_triggered"]:
                                 ip_summary["rules_triggered"].append(rule_tag)
@@ -404,6 +458,10 @@ class DetectionEngine:
                                         sig_data["recommendation"],
                                         f"Check HTTP response status ({e.http_status}) to ensure payload was blocked."
                                     ],
+                                    mitre_id=sig_data["mitre_id"],
+                                    mitre_name=sig_data["mitre_name"],
+                                    mitre_tactic=sig_data["mitre_tactic"],
+                                    kill_chain_phase=sig_data["kill_chain"],
                                     related_events=[e.id],
                                     metadata={"signature": sig_key, "url": e.url, "method": e.http_method, "status": e.http_status}
                                 )
@@ -423,8 +481,12 @@ class DetectionEngine:
 
         # Aggregate incident severity breakdown
         severity_counts = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
+        mitre_matrix = defaultdict(int)
+
         for inc in incidents:
             severity_counts[inc.severity] = severity_counts.get(inc.severity, 0) + 1
+            mitre_key = f"{inc.mitre_id} ({inc.mitre_name})"
+            mitre_matrix[mitre_key] += 1
 
         suspicious_ips = [ip for ip, data in ip_groups.items() if data["is_suspicious"]]
 
@@ -450,4 +512,5 @@ class DetectionEngine:
             "top_suspicious_ips": top_suspicious,
             "routine_errors": routine_errors,
             "hourly_activity": dict(hourly_activity),
+            "mitre_matrix": dict(mitre_matrix),
         }

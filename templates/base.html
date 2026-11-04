@@ -1,43 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SOC Security Log Analyzer{% endblock %} | CodeNova</title>
-    <!-- Modern Sans Font -->
+    <title>{% block title %}SOC Security Command Center{% endblock %} | CodeNova Cyber Defense</title>
+    <!-- Modern Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Custom CSS -->
+    <!-- Custom Cyber SOC CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
+<body class="theme-soc-dark">
 
-    <!-- Navigation Bar -->
+    <!-- Tactical Top Navbar -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="{{ url_for('dashboard') }}" class="nav-brand">
-                <span class="brand-icon">🛡️</span>
-                <span class="brand-text">CodeNova <span class="brand-sub">SOC Analyzer</span></span>
+                <span class="brand-radar"></span>
+                <span class="brand-text">CODENOVA <span class="brand-cyan">SOC // SIEM</span></span>
             </a>
+
             <div class="nav-menu">
-                <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">Dashboard</a>
-                <a href="{{ url_for('index') }}" class="nav-link {% if request.path == '/' %}active{% endif %}">Upload Logs</a>
-                <a href="{{ url_for('events') }}" class="nav-link {% if request.path == '/events' %}active{% endif %}">Security Events</a>
-                <a href="{{ url_for('incidents') }}" class="nav-link {% if request.path == '/incidents' %}active{% endif %}">Incidents</a>
-                <a href="{{ url_for('reports') }}" class="nav-link {% if request.path == '/reports' %}active{% endif %}">Reports</a>
-                <a href="{{ url_for('about') }}" class="nav-link {% if request.path == '/about' %}active{% endif %}">About</a>
+                <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="{{ url_for('index') }}" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                    <span class="nav-icon">📥</span> Ingest Logs
+                </a>
+                <a href="{{ url_for('events') }}" class="nav-link {% if request.path == '/events' %}active{% endif %}">
+                    <span class="nav-icon">📜</span> Telemetry Feed
+                </a>
+                <a href="{{ url_for('incidents') }}" class="nav-link {% if request.path == '/incidents' %}active{% endif %}">
+                    <span class="nav-icon">🚨</span> Threat Incidents
+                </a>
+                <a href="{{ url_for('reports') }}" class="nav-link {% if request.path == '/reports' %}active{% endif %}">
+                    <span class="nav-icon">📄</span> Incident Reports
+                </a>
+                <a href="{{ url_for('about') }}" class="nav-link {% if request.path == '/about' %}active{% endif %}">
+                    <span class="nav-icon">ℹ️</span> MITRE Specs
+                </a>
             </div>
-            <div class="nav-status">
-                <span class="status-indicator"></span>
-                <span class="status-label">Local Defensive Mode</span>
+
+            <div class="nav-controls">
+                <button id="themeToggleBtn" class="btn-theme-toggle" onclick="toggleSocTheme()" title="Toggle SOC Dark / Light UI">
+                    🌓 <span id="themeLabel">Light View</span>
+                </button>
+                <div class="soc-heartbeat">
+                    <span class="pulse-led"></span>
+                    <span class="pulse-text">SOC ENGINE ACTIVE</span>
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content Container -->
+    <!-- Main Workspace -->
     <main class="main-content">
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -58,16 +77,46 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
+    <!-- Tactical Footer -->
     <footer class="footer">
         <div class="footer-container">
-            <p>© 2026 CodeNova Cybersecurity Internship — Task 4: Incident Response & Anomaly Detection.</p>
-            <p class="footer-sub">Built with Python, Flask, Regex, Datetime, Pandas, and Chart.js. Works 100% locally with zero external network probes.</p>
+            <div class="footer-left">
+                <span class="brand-text font-mono">CODENOVA DEFENSE PLATFORM // TASK 4</span>
+                <span class="footer-sub">100% Local Heuristics & Behavioral Correlation Engine • Python 3 • Flask • Regex • Chart.js</span>
+            </div>
+            <div class="footer-right">
+                <span class="footer-tag">ZERO EXTERNAL LEAKAGE</span>
+                <span class="footer-tag">RFC 5737 COMPLIANT</span>
+            </div>
         </div>
     </footer>
 
-    <!-- Custom Script -->
+    <!-- Custom Scripts -->
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script>
+    function toggleSocTheme() {
+        const body = document.body;
+        const btn = document.getElementById('themeLabel');
+        if (body.classList.contains('theme-soc-dark')) {
+            body.classList.remove('theme-soc-dark');
+            body.classList.add('theme-soc-light');
+            btn.innerText = 'Dark View';
+            localStorage.setItem('soc_theme', 'light');
+        } else {
+            body.classList.remove('theme-soc-light');
+            body.classList.add('theme-soc-dark');
+            btn.innerText = 'Light View';
+            localStorage.setItem('soc_theme', 'dark');
+        }
+    }
+    // Restore preference
+    if (localStorage.getItem('soc_theme') === 'light') {
+        document.body.classList.remove('theme-soc-dark');
+        document.body.classList.add('theme-soc-light');
+        const l = document.getElementById('themeLabel');
+        if (l) l.innerText = 'Dark View';
+    }
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -16,16 +16,23 @@
         </div>
         <div class="card-body">
             <p>
-                In a Security Operations Center (SOC), security analysts are tasked with defending corporate infrastructure against automated credential attacks, vulnerability scans, and unauthorized intrusions.
+                In a Security Operations Center (SOC), security analysts are tasked with defending corporate
+                infrastructure against automated credential attacks, vulnerability scans, and unauthorized intrusions.
             </p>
             <p>
-                This application acts as an automated <strong>Incident Response & Anomaly Detection Tool</strong>. It evaluates sanitized authentication logs (Linux <code>auth.log</code>, <code>secure</code>) and web server logs (Apache, Nginx Combined Log Format) completely locally, with zero external network probes or sensitive data storage.
+                This application acts as an automated <strong>Incident Response & Anomaly Detection Tool</strong>. It
+                evaluates sanitized authentication logs (Linux <code>auth.log</code>, <code>secure</code>) and web
+                server logs (Apache, Nginx Combined Log Format) completely locally, with zero external network probes or
+                sensitive data storage.
             </p>
             <h4>Key Architectural Principles:</h4>
             <ul>
-                <li><strong>Strict Local Defensive Operations:</strong> No outbound API calls, no network scanning, no credential persistence.</li>
-                <li><strong>Dual-Vector Ingestion:</strong> Normalizes heterogeneous SSH and Web server logs into unified <code>LogEvent</code> structures.</li>
-                <li><strong>False-Positive Mitigation:</strong> Intelligently differentiates legitimate employee password typos during work hours from high-velocity brute-force campaigns.</li>
+                <li><strong>Strict Local Defensive Operations:</strong> No outbound API calls, no network scanning, no
+                    credential persistence.</li>
+                <li><strong>Dual-Vector Ingestion:</strong> Normalizes heterogeneous SSH and Web server logs into
+                    unified <code>LogEvent</code> structures.</li>
+                <li><strong>False-Positive Mitigation:</strong> Intelligently differentiates legitimate employee
+                    password typos during work hours from high-velocity brute-force campaigns.</li>
             </ul>
         </div>
     </div>
@@ -37,13 +44,20 @@
         </div>
         <div class="card-body">
             <ol class="about-rules-list">
-                <li><strong>Repeated Failed Authentication:</strong> Groups failed logins by source IP and flags threshold breaches (1–3 LOW, 4–5 MEDIUM, &gt;5 HIGH).</li>
-                <li><strong>Rapid Sequential Login Bursts:</strong> Identifies brute-force automation attempting &ge;4 logins within a 60-second sliding window.</li>
-                <li><strong>Multiple Usernames Targeted:</strong> Detects single IPs attempting multiple accounts (credential stuffing / dictionary enumeration).</li>
-                <li><strong>Successful Login Following Failures:</strong> Flags when an IP successfully authenticates immediately after repeated failures (high-confidence compromise indicator).</li>
-                <li><strong>Off-Hours Login Activity:</strong> Detects logins outside 08:00–18:00 Mon–Fri. (Note: Never classified as CRITICAL solely due to off-hours).</li>
-                <li><strong>HTTP 401 & 403 Error Bursts:</strong> Catches rapid web access denial responses indicating endpoint enumeration.</li>
-                <li><strong>Suspicious URL Signatures:</strong> Regex-based detection for SQL Injection, Path/Directory Traversal, and Pentest scanners (Nikto, sqlmap).</li>
+                <li><strong>Repeated Failed Authentication:</strong> Groups failed logins by source IP and flags
+                    threshold breaches (1–3 LOW, 4–5 MEDIUM, &gt;5 HIGH).</li>
+                <li><strong>Rapid Sequential Login Bursts:</strong> Identifies brute-force automation attempting &ge;4
+                    logins within a 60-second sliding window.</li>
+                <li><strong>Multiple Usernames Targeted:</strong> Detects single IPs attempting multiple accounts
+                    (credential stuffing / dictionary enumeration).</li>
+                <li><strong>Successful Login Following Failures:</strong> Flags when an IP successfully authenticates
+                    immediately after repeated failures (high-confidence compromise indicator).</li>
+                <li><strong>Off-Hours Login Activity:</strong> Detects logins outside 08:00–18:00 Mon–Fri. (Note: Never
+                    classified as CRITICAL solely due to off-hours).</li>
+                <li><strong>HTTP 401 & 403 Error Bursts:</strong> Catches rapid web access denial responses indicating
+                    endpoint enumeration.</li>
+                <li><strong>Suspicious URL Signatures:</strong> Regex-based detection for SQL Injection, Path/Directory
+                    Traversal, and Pentest scanners (Nikto, sqlmap).</li>
             </ol>
         </div>
     </div>

@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Detected Incidents & Anomalies{% endblock %}
+{% block title %}Detected Security Incidents{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div>
-        <h1 class="page-title">Detected Incidents & Threat Anomalies</h1>
-        <p class="page-subtitle">Multi-vector intrusion analysis for <strong>{{ filename }}</strong></p>
+        <h1 class="page-title">Active Security Incidents & Threat Detections</h1>
+        <p class="page-subtitle">Rule-based threat correlation, behavioral anomaly heuristics & MITRE ATT&CK mapping for: <span class="font-mono text-cyan">{{ filename }}</span></p>
     </div>
     <div class="severity-pill-group">
         <a href="{{ url_for('incidents', severity='ALL') }}" class="sev-pill {% if sev_filter == 'ALL' or not sev_filter %}active{% endif %}">
-            All ({{ total_count }})
+            ALL ({{ total_count }})
         </a>
         <a href="{{ url_for('incidents', severity='CRITICAL') }}" class="sev-pill sev-pill-critical {% if sev_filter == 'CRITICAL' %}active{% endif %}">
-            Critical ({{ severity_counts.CRITICAL or 0 }})
+            CRITICAL ({{ severity_counts.CRITICAL or 0 }})
         </a>
         <a href="{{ url_for('incidents', severity='HIGH') }}" class="sev-pill sev-pill-high {% if sev_filter == 'HIGH' %}active{% endif %}">
-            High ({{ severity_counts.HIGH or 0 }})
+            HIGH ({{ severity_counts.HIGH or 0 }})
         </a>
         <a href="{{ url_for('incidents', severity='MEDIUM') }}" class="sev-pill sev-pill-medium {% if sev_filter == 'MEDIUM' %}active{% endif %}">
-            Medium ({{ severity_counts.MEDIUM or 0 }})
+            MEDIUM ({{ severity_counts.MEDIUM or 0 }})
         </a>
         <a href="{{ url_for('incidents', severity='LOW') }}" class="sev-pill sev-pill-low {% if sev_filter == 'LOW' %}active{% endif %}">
-            Low ({{ severity_counts.LOW or 0 }})
+            LOW ({{ severity_counts.LOW or 0 }})
         </a>
     </div>
 </div>
@@ -30,17 +30,18 @@
 {% if incidents %}
 <div class="incidents-stack">
     {% for inc in incidents %}
-    <div class="card incident-card border-{{ inc.severity|lower }}">
+    <div class="incident-card border-{{ inc.severity|lower }}">
         <div class="incident-card-header">
             <div class="incident-title-area">
                 <span class="badge-{{ inc.severity|lower }}">{{ inc.severity }}</span>
                 <span class="incident-id">{{ inc.id }}</span>
                 <h3 class="incident-rule">{{ inc.rule_name }}</h3>
+                <span class="badge-neutral font-mono text-xs">{{ inc.mitre_id }}: {{ inc.mitre_name }}</span>
             </div>
             <div class="incident-meta">
-                <span class="meta-item">⏱ <strong>{{ inc.timestamp }}</strong></span>
-                <span class="meta-item">🌐 Source IP: <code>{{ inc.source_ip }}</code></span>
-                <span class="meta-item">🔗 Correlated Events: <strong>{{ inc.related_events|length }}</strong></span>
+                <span class="meta-item">⏱ <strong class="font-mono">{{ inc.timestamp }}</strong></span>
+                <span class="meta-item">🌐 Source: <a href="{{ url_for('investigate_ip', ip=inc.source_ip) }}" class="ip-link font-mono">{{ inc.source_ip }}</a></span>
+                <span class="meta-item">🔗 Events: <strong>{{ inc.related_events|length }}</strong></span>
             </div>
         </div>
 
@@ -48,12 +49,12 @@
             <p class="incident-desc">{{ inc.description }}</p>
 
             <div class="incident-section">
-                <h4>🔍 Reason for Detection:</h4>
-                <p class="incident-reason">{{ inc.reason }}</p>
+                <h4>🔍 Detection Technical Reason:</h4>
+                <p class="incident-reason font-mono text-sm">{{ inc.reason }}</p>
             </div>
 
             <div class="incident-section">
-                <h4>🛡️ Recommended Investigation & Response Steps:</h4>
+                <h4>🛡️ Recommended SOC Playbook Steps:</h4>
                 <ul class="investigation-steps">
                     {% for step in inc.recommended_steps %}
                     <li>{{ step }}</li>
@@ -64,8 +65,14 @@
             <!-- Instant Containment Command for High/Critical -->
             {% if inc.severity in ['CRITICAL', 'HIGH'] %}
             <div class="containment-box">
-                <span class="containment-label">🚨 Recommended Firewall Block Command:</span>
-                <code>iptables -A INPUT -s {{ inc.source_ip }} -j DROP</code>
+                <div class="d-flex align-center gap-2">
+                    <span class="containment-label">🚨 Recommended Firewall Block Command:</span>
+                    <code id="cmd-{{ inc.id }}">iptables -A INPUT -s {{ inc.source_ip }} -j DROP</code>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline btn-xs" onclick="copyText('cmd-{{ inc.id }}')">Copy Rule</button>
+                    <a href="{{ url_for('investigate_ip', ip=inc.source_ip) }}" class="btn btn-primary btn-xs">Open Dossier →</a>
+                </div>
             </div>
             {% endif %}
         </div>
@@ -75,9 +82,20 @@
 {% else %}
 <div class="empty-state">
     <span class="empty-icon">🛡️</span>
-    <h3>No incidents found for severity: {{ sev_filter or 'ALL' }}</h3>
-    <p>Zero security incidents match this filter level.</p>
-    <a href="{{ url_for('incidents', severity='ALL') }}" class="btn btn-primary btn-sm">View All Incidents</a>
+    <h3>No incidents recorded under filter: {{ sev_filter or 'ALL' }}</h3>
+    <p class="text-muted">Zero threats detected at this severity level.</p>
+    <a href="{{ url_for('incidents', severity='ALL') }}" class="btn btn-primary btn-sm mt-3">View All Incidents</a>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyText(elemId) {
+    const text = document.getElementById(elemId).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert("Containment firewall command copied to clipboard!");
+    });
+}
+</script>
 {% endblock %}

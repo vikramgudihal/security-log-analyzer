@@ -90,3 +90,4 @@ class SeverityEngine:
         elif sig_type == "XSS_ATTACK":
             return "MEDIUM", f"Cross-site scripting payload probe detected ({details})."
         return "MEDIUM", f"Suspicious signature matched: {sig_type} ({details})."
+

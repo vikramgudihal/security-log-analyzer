@@ -43,3 +43,4 @@ def test_attack_signature_severity():
 
     sev_lfi, _ = SeverityEngine.evaluate_attack_signature("PATH_TRAVERSAL", "../etc/passwd")
     assert sev_lfi == "HIGH"
+

@@ -6,3 +6,4 @@ Oct 21 11:20:11 server sshd[1145]: Failed password for charlie from 192.168.1.80
 Oct 21 11:21:05 server sshd[1145]: Accepted password for charlie from 192.168.1.80 port 52110 ssh2
 Oct 21 14:10:00 server sshd[1200]: Accepted password for david from 192.168.1.95 port 53100 ssh2
 Oct 21 17:30:00 server sshd[1250]: Accepted password for bob from 192.168.1.45 port 51880 ssh2
+

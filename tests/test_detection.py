@@ -105,3 +105,4 @@ def test_web_signatures_and_error_burst():
     assert len(sqli) >= 1
     assert len(lfi) >= 1
     assert len(http_burst) >= 1
+
