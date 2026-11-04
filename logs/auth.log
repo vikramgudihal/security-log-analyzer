@@ -1,0 +1,38 @@
+Oct 21 08:30:15 server sshd[1023]: Accepted publickey for alice from 192.168.1.10 port 54322 ssh2: RSA SHA256:abc123legit
+Oct 21 09:15:02 server sshd[1050]: Failed password for bob from 192.168.1.45 port 51230 ssh2
+Oct 21 09:15:22 server sshd[1050]: Accepted password for bob from 192.168.1.45 port 51230 ssh2
+Oct 21 10:05:40 server sshd[1101]: Accepted publickey for devops_admin from 10.0.0.15 port 49811 ssh2: RSA SHA256:dev999
+Oct 21 11:20:11 server sshd[1145]: Failed password for charlie from 192.168.1.80 port 52110 ssh2
+Oct 21 11:21:05 server sshd[1145]: Accepted password for charlie from 192.168.1.80 port 52110 ssh2
+Oct 21 14:02:01 server sshd[2201]: Failed password for root from 203.0.113.88 port 39101 ssh2
+Oct 21 14:02:03 server sshd[2202]: Failed password for root from 203.0.113.88 port 39102 ssh2
+Oct 21 14:02:05 server sshd[2203]: Failed password for admin from 203.0.113.88 port 39103 ssh2
+Oct 21 14:02:07 server sshd[2204]: Failed password for invalid user test from 203.0.113.88 port 39104 ssh2
+Oct 21 14:02:09 server sshd[2205]: Failed password for invalid user oracle from 203.0.113.88 port 39105 ssh2
+Oct 21 14:02:11 server sshd[2206]: Failed password for invalid user postgres from 203.0.113.88 port 39106 ssh2
+Oct 21 14:02:13 server sshd[2207]: Failed password for invalid user deploy from 203.0.113.88 port 39107 ssh2
+Oct 21 14:02:15 server sshd[2208]: Failed password for invalid user guest from 203.0.113.88 port 39108 ssh2
+Oct 21 14:02:17 server sshd[2209]: Failed password for invalid user git from 203.0.113.88 port 39109 ssh2
+Oct 21 14:02:19 server sshd[2210]: Failed password for support from 203.0.113.88 port 39110 ssh2
+Oct 21 14:02:22 server sshd[2211]: Failed password for root from 203.0.113.88 port 39111 ssh2
+Oct 21 14:02:25 server sshd[2212]: Failed password for administrator from 203.0.113.88 port 39112 ssh2
+Oct 21 15:45:00 server sshd[2400]: Failed password for invalid user ftpuser from 185.220.101.5 port 41200 ssh2
+Oct 21 15:46:10 server sshd[2405]: Failed password for invalid user nagios from 185.220.101.5 port 41205 ssh2
+Oct 21 15:47:30 server sshd[2410]: Failed password for invalid user tomcat from 185.220.101.5 port 41210 ssh2
+Oct 21 15:48:45 server sshd[2415]: Failed password for root from 185.220.101.5 port 41215 ssh2
+Oct 21 15:50:01 server sshd[2420]: Failed password for ubuntu from 185.220.101.5 port 41220 ssh2
+Oct 21 15:51:15 server sshd[2425]: Failed password for debian from 185.220.101.5 port 41225 ssh2
+Oct 21 17:30:00 server sshd[2600]: Accepted password for bob from 192.168.1.45 port 51880 ssh2
+Oct 21 22:15:10 server sshd[2800]: Failed password for root from 198.51.100.23 port 59001 ssh2
+Oct 21 22:15:18 server sshd[2801]: Failed password for root from 198.51.100.23 port 59002 ssh2
+Oct 21 23:45:01 server sshd[2950]: Failed password for invalid user backup from 198.51.100.23 port 59020 ssh2
+Oct 22 02:14:10 server sshd[3100]: Failed password for admin from 198.51.100.23 port 59100 ssh2
+Oct 22 02:14:14 server sshd[3101]: Failed password for root from 198.51.100.23 port 59101 ssh2
+Oct 22 02:14:18 server sshd[3102]: Failed password for root from 198.51.100.23 port 59102 ssh2
+Oct 22 02:14:22 server sshd[3103]: Failed password for root from 198.51.100.23 port 59103 ssh2
+Oct 22 03:52:10 server sshd[3250]: Accepted password for root from 198.51.100.23 port 59200 ssh2
+Oct 22 04:10:00 server sshd[3300]: session opened for user root by (uid=0)
+Oct 22 05:22:18 server sshd[3410]: Failed password for service_account from 203.0.113.88 port 40100 ssh2
+Oct 22 05:22:20 server sshd[3411]: Failed password for service_account from 203.0.113.88 port 40101 ssh2
+Oct 22 05:22:22 server sshd[3412]: Failed password for service_account from 203.0.113.88 port 40102 ssh2
+Oct 22 09:00:10 server sshd[3600]: Accepted publickey for alice from 192.168.1.10 port 55100 ssh2: RSA SHA256:abc123legit
