@@ -1,5 +1,4 @@
-# 🛡️ Security Log Analyzer & Incident Response Engine (Task 4)
-**CodeNova Cybersecurity Internship — Task 4**
+# 🛡️ Security Log Analyzer & Incident Response Engine
 
 [![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Framework](https://img.shields.io/badge/Backend-Flask%203.0-lightgrey.svg)](https://flask.palletsprojects.com/)
@@ -7,7 +6,7 @@
 [![Testing](https://img.shields.io/badge/Tests-Pytest%20(22%20Passed)-green.svg)](https://docs.pytest.org/)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-> A production-grade, defensive **Security Log Analyzer & Incident Response Web Application** built for the **CodeNova Cybersecurity Internship**.
+> A defensive **Security Log Analyzer & Incident Response Web Application** built with Python, Flask, Regex, Datetime, and Tabulate.
 > It parses Linux authentication logs (`auth.log`/`secure`) and web server access logs (Apache/Nginx), identifies repeated failed authentications, detects brute-force bursts and web attack vectors, strictly differentiates routine user typos from malicious campaigns, and generates structured executive reports in **Markdown (.md)**, **Plaintext (.txt)**, and **CSV (.csv)**.
 
 ---
@@ -162,7 +161,8 @@ All sample datasets in `samples/` are purely synthetic and use RFC-reserved IP a
 
 ### 1. Clone or Open the Repository
 ```bash
-cd "c:\Users\vikra\OneDrive\Documents\cyber security internship\task4"
+git clone https://github.com/<your-username>/security-log-analyzer.git
+cd security-log-analyzer
 ```
 
 ### 2. Set Up Virtual Environment (Recommended)
@@ -278,7 +278,6 @@ Please refer to:
 
 ---
 
-## 👤 Internship Verification
-- **Internship:** CodeNova Cybersecurity Internship
-- **Task:** Task 4 — Security Log Analyzer (Incident Response & Anomaly Detection)
+## 👤 Project Status
+- **Module:** Task 4 — Security Log Analyzer (Incident Response & Anomaly Detection)
 - **Status:** Complete, Verified & Tested (22/22 Tests Passing)

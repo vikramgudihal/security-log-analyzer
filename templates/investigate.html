@@ -5,15 +5,17 @@
 {% block content %}
 <!-- Dossier Header -->
 <div class="card" style="padding: 1.25rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
         <div>
             <div class="text-muted text-sm">Host Investigation Dossier</div>
             <h1 class="page-title font-mono" style="font-size: 1.5rem; margin-top: 0.2rem;">{{ ip }}</h1>
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="badge badge-{{ summary.highest_severity|lower }}" style="font-size: 0.82rem; padding: 0.3rem 0.6rem;">{{ summary.highest_severity }}</span>
+            <span class="badge badge-{{ summary.highest_severity|lower }}"
+                style="font-size: 0.82rem; padding: 0.3rem 0.6rem;">{{ summary.highest_severity }}</span>
             {% if is_quarantined %}
-                <span class="badge badge-danger">Quarantined</span>
+            <span class="badge badge-danger">Quarantined</span>
             {% endif %}
             <button class="btn btn-danger btn-sm" onclick="triggerQuarantine('{{ ip }}')">Block / Contain IP</button>
             <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
@@ -32,7 +34,8 @@
         </div>
         <div class="kpi-card" style="padding: 0.75rem 1rem;">
             <span class="kpi-title">Successful Logins</span>
-            <span class="kpi-value font-mono text-success" style="font-size: 1.4rem;">{{ summary.successful_logins }}</span>
+            <span class="kpi-value font-mono text-success" style="font-size: 1.4rem;">{{ summary.successful_logins
+                }}</span>
         </div>
         <div class="kpi-card" style="padding: 0.75rem 1rem;">
             <span class="kpi-title">Targeted Accounts</span>
@@ -86,7 +89,8 @@
             <div class="form-group">
                 <label class="form-label">Linux iptables:</label>
                 <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" class="form-control font-mono" id="iptablesCmd" value="iptables -A INPUT -s {{ ip }} -j DROP" readonly>
+                    <input type="text" class="form-control font-mono" id="iptablesCmd"
+                        value="iptables -A INPUT -s {{ ip }} -j DROP" readonly>
                     <button class="btn btn-secondary btn-sm" onclick="copyValue('iptablesCmd')">Copy</button>
                 </div>
             </div>
@@ -94,7 +98,8 @@
             <div class="form-group">
                 <label class="form-label">Ubuntu UFW:</label>
                 <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" class="form-control font-mono" id="ufwCmd" value="ufw deny from {{ ip }}" readonly>
+                    <input type="text" class="form-control font-mono" id="ufwCmd" value="ufw deny from {{ ip }}"
+                        readonly>
                     <button class="btn btn-secondary btn-sm" onclick="copyValue('ufwCmd')">Copy</button>
                 </div>
             </div>
@@ -102,7 +107,9 @@
             <div class="form-group">
                 <label class="form-label">Windows PowerShell:</label>
                 <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" class="form-control font-mono" id="psCmd" value="New-NetFirewallRule -DisplayName 'Block_{{ ip }}' -Direction Inbound -Action Block -RemoteAddress {{ ip }}" readonly>
+                    <input type="text" class="form-control font-mono" id="psCmd"
+                        value="New-NetFirewallRule -DisplayName 'Block_{{ ip }}' -Direction Inbound -Action Block -RemoteAddress {{ ip }}"
+                        readonly>
                     <button class="btn btn-secondary btn-sm" onclick="copyValue('psCmd')">Copy</button>
                 </div>
             </div>
@@ -134,14 +141,15 @@
                     <tr>
                         <td class="text-muted font-mono">{{ e.id }}</td>
                         <td class="font-mono text-sm">{{ e.timestamp }}</td>
-                        <td><span class="event-type-tag {% if e.event_type == 'LOGIN_FAILED' %}failure{% endif %}">{{ e.event_type }}</span></td>
+                        <td><span class="event-type-tag {% if e.event_type == 'LOGIN_FAILED' %}failure{% endif %}">{{
+                                e.event_type }}</span></td>
                         <td>
                             {% if e.auth_status == 'SUCCESS' %}
-                                <span class="badge badge-success">Success</span>
+                            <span class="badge badge-success">Success</span>
                             {% elif e.auth_status == 'FAILURE' %}
-                                <span class="badge badge-danger">Failure</span>
+                            <span class="badge badge-danger">Failure</span>
                             {% else %}
-                                <span class="text-muted">-</span>
+                            <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td>{{ e.username if e.username != 'N/A' else e.url }}</td>
@@ -157,26 +165,26 @@
 
 {% block scripts %}
 <script>
-function copyValue(elemId) {
-    const val = document.getElementById(elemId).value;
-    navigator.clipboard.writeText(val).then(() => {
-        alert("Command copied to clipboard!");
-    });
-}
+    function copyValue(elemId) {
+        const val = document.getElementById(elemId).value;
+        navigator.clipboard.writeText(val).then(() => {
+            alert("Command copied to clipboard!");
+        });
+    }
 
-function triggerQuarantine(ip) {
-    fetch('/api/contain-ip', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip: ip })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            alert(`IP ${ip} marked as quarantined. Firewall commands ready.`);
-            location.reload();
-        }
-    });
-}
+    function triggerQuarantine(ip) {
+        fetch('/api/contain-ip', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ip: ip })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`IP ${ip} marked as quarantined. Firewall commands ready.`);
+                    location.reload();
+                }
+            });
+    }
 </script>
 {% endblock %}

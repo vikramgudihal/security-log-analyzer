@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Security Log Analyzer{% endblock %} - CodeNova Task 4</title>
+    <title>{% block title %}Security Log Analyzer{% endblock %} - Incident Response & Anomaly Detection</title>
     <!-- Clean Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Clean Student Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
 
     <!-- Main Navigation Bar -->
@@ -24,16 +28,22 @@
             </a>
 
             <div class="nav-menu">
-                <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">Dashboard</a>
-                <a href="{{ url_for('index') }}" class="nav-link {% if request.path == '/' %}active{% endif %}">Upload Logs</a>
-                <a href="{{ url_for('events') }}" class="nav-link {% if request.path == '/events' %}active{% endif %}">Security Events</a>
-                <a href="{{ url_for('incidents') }}" class="nav-link {% if request.path == '/incidents' %}active{% endif %}">Incidents</a>
-                <a href="{{ url_for('reports') }}" class="nav-link {% if request.path == '/reports' %}active{% endif %}">Reports</a>
-                <a href="{{ url_for('about') }}" class="nav-link {% if request.path == '/about' %}active{% endif %}">About</a>
+                <a href="{{ url_for('dashboard') }}"
+                    class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{{ url_for('index') }}" class="nav-link {% if request.path == '/' %}active{% endif %}">Upload
+                    Logs</a>
+                <a href="{{ url_for('events') }}"
+                    class="nav-link {% if request.path == '/events' %}active{% endif %}">Security Events</a>
+                <a href="{{ url_for('incidents') }}"
+                    class="nav-link {% if request.path == '/incidents' %}active{% endif %}">Incidents</a>
+                <a href="{{ url_for('reports') }}"
+                    class="nav-link {% if request.path == '/reports' %}active{% endif %}">Reports</a>
+                <a href="{{ url_for('about') }}"
+                    class="nav-link {% if request.path == '/about' %}active{% endif %}">About</a>
             </div>
 
             <div class="nav-meta">
-                <span>CodeNova Cybersecurity Internship</span>
+                <span>Incident Response & Anomaly Detection</span>
             </div>
         </div>
     </nav>
@@ -42,15 +52,15 @@
     <main class="main-content">
         <!-- Flash Alerts -->
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-container">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
@@ -60,7 +70,7 @@
     <footer class="footer">
         <div class="footer-container">
             <div>
-                <strong>Task 4: Incident Response & Anomaly Detection</strong> — CodeNova Cybersecurity Internship.
+                <strong>Task 4: Incident Response & Anomaly Detection</strong> — Security Log Analysis System.
             </div>
             <div>
                 Python 3 • Flask • Regex • Datetime • Chart.js
@@ -72,4 +82,5 @@
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
+
 </html>

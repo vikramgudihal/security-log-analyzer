@@ -1,6 +1,6 @@
 """
-Flask Web Application for Security Log Analyzer (CodeNova Task 4).
-Full SOC-style interface featuring Dashboards, Event Filtering, Incident Inspection,
+Flask Web Application for Security Log Analyzer (Task 4).
+Full interface featuring Dashboards, Event Filtering, Incident Inspection,
 MITRE ATT&CK Correlation, Threat Dossiers, and Dynamic Remediation.
 """
 
@@ -18,7 +18,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['REPORTS_FOLDER'], exist_ok=True)
 os.makedirs(app.config['SAMPLES_FOLDER'], exist_ok=True)
 
-# In-memory storage for the active SOC analysis session
+# In-memory storage for the active analysis session
 SESSION_DATA = {
     "filename": "mixed_sample.log",
     "events": [],
@@ -137,27 +137,23 @@ def load_sample(sample_name):
 
 @app.route('/dashboard')
 def dashboard():
-    """SOC Executive Dashboard displaying statistics, charts, and recent events."""
+    """Security Dashboard displaying statistics, charts, and recent events."""
     a = SESSION_DATA["analysis"]
     stats = SESSION_DATA["stats"]
     events = SESSION_DATA["events"]
 
-    # Recent events (first 10 for dashboard widget)
     recent_events = [e.to_dict() for e in events[:10]]
-
-    # Incidents to dict
     incidents_dict = [inc.to_dict() for inc in a.get("incidents", [])]
 
-    # Overall DEFCON level
     counts = a.get("severity_counts", {})
     if counts.get("CRITICAL", 0) > 0:
-        defcon = {"level": "CRITICAL", "class": "defcon-critical", "label": "DEFCON 1 - CRITICAL BREACH RISK"}
+        defcon = {"level": "CRITICAL", "class": "critical", "label": "CRITICAL BREACH RISK"}
     elif counts.get("HIGH", 0) > 0:
-        defcon = {"level": "HIGH", "class": "defcon-high", "label": "DEFCON 2 - ELEVATED ATTACK SURFACE"}
+        defcon = {"level": "HIGH", "class": "high", "label": "ELEVATED ATTACK SURFACE"}
     elif counts.get("MEDIUM", 0) > 0:
-        defcon = {"level": "MEDIUM", "class": "defcon-medium", "label": "DEFCON 3 - SUSPICIOUS ANOMALIES"}
+        defcon = {"level": "MEDIUM", "class": "medium", "label": "SUSPICIOUS ANOMALIES"}
     else:
-        defcon = {"level": "NOMINAL", "class": "defcon-low", "label": "DEFCON 5 - NORMAL OPERATIONS"}
+        defcon = {"level": "NOMINAL", "class": "low", "label": "NORMAL OPERATIONS"}
 
     return render_template(
         'dashboard.html',
@@ -228,7 +224,7 @@ def events():
 
 @app.route('/incidents')
 def incidents():
-    """Detected Incidents and Anomalies page with MITRE matrix and containment controls."""
+    """Detected Incidents and Anomalies page."""
     a = SESSION_DATA["analysis"]
     all_incidents = [inc.to_dict() for inc in a.get("incidents", [])]
 
@@ -252,7 +248,7 @@ def incidents():
 
 @app.route('/investigate/<ip>')
 def investigate_ip(ip):
-    """Deep-dive SOC Threat Dossier for a specific IP address."""
+    """Deep-dive Threat Dossier for a specific IP address."""
     a = SESSION_DATA["analysis"]
     events = [e.to_dict() for e in SESSION_DATA["events"] if e.source_ip == ip]
     incidents = [inc.to_dict() for inc in a.get("incidents", []) if inc.source_ip == ip]
@@ -275,7 +271,7 @@ def investigate_ip(ip):
 
 @app.route('/api/contain-ip', methods=['POST'])
 def contain_ip():
-    """Simulates one-click SOC containment & firewall rule generation for an IP."""
+    """Generates containment & firewall rules for an IP."""
     data = request.get_json() or {}
     ip = data.get("ip")
     if not ip:
@@ -300,7 +296,7 @@ def contain_ip():
 
 @app.route('/api/reconfigure', methods=['POST'])
 def reconfigure_thresholds():
-    """Dynamically re-tunes thresholds and re-runs detection without page reload."""
+    """Dynamically re-tunes thresholds and re-runs detection."""
     data = request.get_json() or {}
     t = SESSION_DATA["thresholds"]
 
@@ -311,7 +307,6 @@ def reconfigure_thresholds():
     if "burst_window" in data:
         t["burst_window"] = int(data["burst_window"])
 
-    # Re-run detection on existing parsed events
     detector = DetectionEngine(
         failed_low_min=t["failed_low"],
         failed_med_min=t["failed_med"],

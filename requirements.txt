@@ -1,4 +1,4 @@
-# CodeNova Cybersecurity Internship - Task 4: Security Log Analyzer
+# Security Log Analyzer - Task 4: Incident Response & Anomaly Detection
 Flask>=3.0.0
 Werkzeug>=3.0.0
 pandas>=2.0.0

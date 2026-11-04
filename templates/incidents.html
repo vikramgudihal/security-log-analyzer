@@ -6,22 +6,28 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">Detected Incidents & Threat Anomalies</h1>
-        <p class="page-subtitle">Security rule triggers and behavioral anomalies for: <strong>{{ filename }}</strong></p>
+        <p class="page-subtitle">Security rule triggers and behavioral anomalies for: <strong>{{ filename }}</strong>
+        </p>
     </div>
     <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
-        <a href="{{ url_for('incidents', severity='ALL') }}" class="btn {% if sev_filter == 'ALL' or not sev_filter %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+        <a href="{{ url_for('incidents', severity='ALL') }}"
+            class="btn {% if sev_filter == 'ALL' or not sev_filter %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
             All ({{ total_count }})
         </a>
-        <a href="{{ url_for('incidents', severity='CRITICAL') }}" class="btn {% if sev_filter == 'CRITICAL' %}btn-danger{% else %}btn-secondary{% endif %} btn-sm">
+        <a href="{{ url_for('incidents', severity='CRITICAL') }}"
+            class="btn {% if sev_filter == 'CRITICAL' %}btn-danger{% else %}btn-secondary{% endif %} btn-sm">
             Critical ({{ severity_counts.CRITICAL or 0 }})
         </a>
-        <a href="{{ url_for('incidents', severity='HIGH') }}" class="btn {% if sev_filter == 'HIGH' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+        <a href="{{ url_for('incidents', severity='HIGH') }}"
+            class="btn {% if sev_filter == 'HIGH' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
             High ({{ severity_counts.HIGH or 0 }})
         </a>
-        <a href="{{ url_for('incidents', severity='MEDIUM') }}" class="btn {% if sev_filter == 'MEDIUM' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+        <a href="{{ url_for('incidents', severity='MEDIUM') }}"
+            class="btn {% if sev_filter == 'MEDIUM' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
             Medium ({{ severity_counts.MEDIUM or 0 }})
         </a>
-        <a href="{{ url_for('incidents', severity='LOW') }}" class="btn {% if sev_filter == 'LOW' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+        <a href="{{ url_for('incidents', severity='LOW') }}"
+            class="btn {% if sev_filter == 'LOW' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
             Low ({{ severity_counts.LOW or 0 }})
         </a>
     </div>
@@ -40,7 +46,8 @@
             <div class="text-muted text-sm">
                 <span>Time: <strong class="font-mono">{{ inc.timestamp }}</strong></span>
                 <span style="margin: 0 0.4rem;">•</span>
-                <span>Source IP: <a href="{{ url_for('investigate_ip', ip=inc.source_ip) }}" class="font-mono text-primary">{{ inc.source_ip }}</a></span>
+                <span>Source IP: <a href="{{ url_for('investigate_ip', ip=inc.source_ip) }}"
+                        class="font-mono text-primary">{{ inc.source_ip }}</a></span>
                 <span style="margin: 0 0.4rem;">•</span>
                 <span>Events: <strong>{{ inc.related_events|length }}</strong></span>
             </div>
@@ -69,7 +76,8 @@
             <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <code id="cmd-{{ inc.id }}">iptables -A INPUT -s {{ inc.source_ip }} -j DROP</code>
                 <button class="btn btn-secondary btn-sm" onclick="copyText('cmd-{{ inc.id }}')">Copy Rule</button>
-                <a href="{{ url_for('investigate_ip', ip=inc.source_ip) }}" class="btn btn-outline btn-sm">Investigate IP →</a>
+                <a href="{{ url_for('investigate_ip', ip=inc.source_ip) }}" class="btn btn-outline btn-sm">Investigate
+                    IP →</a>
             </div>
         </div>
         {% endif %}
@@ -87,11 +95,11 @@
 
 {% block scripts %}
 <script>
-function copyText(elemId) {
-    const text = document.getElementById(elemId).innerText;
-    navigator.clipboard.writeText(text).then(() => {
-        alert("Firewall rule copied to clipboard!");
-    });
-}
+    function copyText(elemId) {
+        const text = document.getElementById(elemId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Firewall rule copied to clipboard!");
+        });
+    }
 </script>
 {% endblock %}

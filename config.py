@@ -1,5 +1,5 @@
 """
-Configuration file for Security Log Analyzer (CodeNova Task 4).
+Configuration file for Security Log Analyzer.
 Contains application settings, file upload constraints, and detection thresholds.
 """
 
@@ -8,7 +8,7 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'codenova-soc-log-analyzer-key-2026')
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'security-log-analyzer-secret-key-2026')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload limit
     ALLOWED_EXTENSIONS = {'log', 'txt'}
 
@@ -34,4 +34,3 @@ class Config:
 
     MULTIPLE_USERNAMES_THRESHOLD = 3
     HTTP_ERROR_BURST_THRESHOLD = 5
-

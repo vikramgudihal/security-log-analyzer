@@ -31,7 +31,7 @@ def test_report_generation_formats():
 
     # 2. Test Text Report
     txt = generator.generate_text()
-    assert "CODENOVA SOC - SECURITY INCIDENT ANALYSIS REPORT" in txt
+    assert "SECURITY INCIDENT ANALYSIS REPORT" in txt
     assert "TOP SUSPICIOUS IP ADDRESSES" in txt
     assert "iptables -A INPUT" in txt
 

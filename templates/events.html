@@ -18,36 +18,45 @@
     <form method="GET" action="{{ url_for('events') }}" class="filter-form">
         <div class="filter-item" style="flex: 2;">
             <label for="queryInput">Search Message / URI / IP:</label>
-            <input type="text" name="q" id="queryInput" class="form-control" placeholder="Search keywords..." value="{{ query_search }}">
+            <input type="text" name="q" id="queryInput" class="form-control" placeholder="Search keywords..."
+                value="{{ query_search }}">
         </div>
 
         <div class="filter-item">
             <label for="ipInput">Source IP:</label>
-            <input type="text" name="ip" id="ipInput" class="form-control font-mono" placeholder="e.g. 203.0.113.88" value="{{ ip_filter }}">
+            <input type="text" name="ip" id="ipInput" class="form-control font-mono" placeholder="e.g. 203.0.113.88"
+                value="{{ ip_filter }}">
         </div>
 
         <div class="filter-item">
             <label for="userInput">Username:</label>
-            <input type="text" name="user" id="userInput" class="form-control" placeholder="e.g. root, admin" value="{{ user_filter }}">
+            <input type="text" name="user" id="userInput" class="form-control" placeholder="e.g. root, admin"
+                value="{{ user_filter }}">
         </div>
 
         <div class="filter-item">
             <label for="eventTypeSelect">Event Type:</label>
             <select name="event_type" id="eventTypeSelect" class="form-control">
-                <option value="ALL" {% if event_type_filter == 'ALL' or not event_type_filter %}selected{% endif %}>All Types</option>
-                <option value="LOGIN_FAILED" {% if event_type_filter == 'LOGIN_FAILED' %}selected{% endif %}>LOGIN_FAILED</option>
-                <option value="LOGIN_SUCCESS" {% if event_type_filter == 'LOGIN_SUCCESS' %}selected{% endif %}>LOGIN_SUCCESS</option>
-                <option value="WEB_REQUEST" {% if event_type_filter == 'WEB_REQUEST' %}selected{% endif %}>WEB_REQUEST</option>
-                <option value="SESSION_OPEN" {% if event_type_filter == 'SESSION_OPEN' %}selected{% endif %}>SESSION_OPEN</option>
+                <option value="ALL" {% if event_type_filter=='ALL' or not event_type_filter %}selected{% endif %}>All
+                    Types</option>
+                <option value="LOGIN_FAILED" {% if event_type_filter=='LOGIN_FAILED' %}selected{% endif %}>LOGIN_FAILED
+                </option>
+                <option value="LOGIN_SUCCESS" {% if event_type_filter=='LOGIN_SUCCESS' %}selected{% endif %}>
+                    LOGIN_SUCCESS</option>
+                <option value="WEB_REQUEST" {% if event_type_filter=='WEB_REQUEST' %}selected{% endif %}>WEB_REQUEST
+                </option>
+                <option value="SESSION_OPEN" {% if event_type_filter=='SESSION_OPEN' %}selected{% endif %}>SESSION_OPEN
+                </option>
             </select>
         </div>
 
         <div class="filter-item">
             <label for="statusSelect">Auth Status:</label>
             <select name="status" id="statusSelect" class="form-control">
-                <option value="ALL" {% if status_filter == 'ALL' or not status_filter %}selected{% endif %}>All Statuses</option>
-                <option value="FAILURE" {% if status_filter == 'FAILURE' %}selected{% endif %}>FAILURE</option>
-                <option value="SUCCESS" {% if status_filter == 'SUCCESS' %}selected{% endif %}>SUCCESS</option>
+                <option value="ALL" {% if status_filter=='ALL' or not status_filter %}selected{% endif %}>All Statuses
+                </option>
+                <option value="FAILURE" {% if status_filter=='FAILURE' %}selected{% endif %}>FAILURE</option>
+                <option value="SUCCESS" {% if status_filter=='SUCCESS' %}selected{% endif %}>SUCCESS</option>
             </select>
         </div>
 
@@ -90,28 +99,32 @@
                         </td>
                         <td><span class="badge badge-neutral">{{ e.log_type }}</span></td>
                         <td>
-                            <span class="event-type-tag {% if e.event_type == 'LOGIN_FAILED' %}failure{% endif %}">{{ e.event_type }}</span>
+                            <span class="event-type-tag {% if e.event_type == 'LOGIN_FAILED' %}failure{% endif %}">{{
+                                e.event_type }}</span>
                         </td>
                         <td>
                             {% if e.auth_status == 'SUCCESS' %}
-                                <span class="badge badge-success">Success</span>
+                            <span class="badge badge-success">Success</span>
                             {% elif e.auth_status == 'FAILURE' %}
-                                <span class="badge badge-danger">Failure</span>
+                            <span class="badge badge-danger">Failure</span>
                             {% else %}
-                                <span class="text-muted">-</span>
+                            <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if e.username and e.username != 'N/A' %}
-                                <code>{{ e.username }}</code> {% if e.is_invalid_user %}<span class="text-danger text-xs">(Invalid)</span>{% endif %}
+                            <code>{{ e.username }}</code> {% if e.is_invalid_user %}<span
+                                class="text-danger text-xs">(Invalid)</span>{% endif %}
                             {% else %}
-                                <span class="text-muted">-</span>
+                            <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td class="font-mono text-xs">{{ e.url if e.url != '-' else ('Port ' ~ e.port if e.port != '-' else '-') }}</td>
+                        <td class="font-mono text-xs">{{ e.url if e.url != '-' else ('Port ' ~ e.port if e.port != '-'
+                            else '-') }}</td>
                         <td class="code-snippet font-mono">{{ e.message }}</td>
                         <td>
-                            <a href="{{ url_for('investigate_ip', ip=e.source_ip) }}" class="btn btn-outline btn-sm">View</a>
+                            <a href="{{ url_for('investigate_ip', ip=e.source_ip) }}"
+                                class="btn btn-outline btn-sm">View</a>
                         </td>
                     </tr>
                     {% endfor %}

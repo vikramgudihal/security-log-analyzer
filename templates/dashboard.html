@@ -249,19 +249,22 @@
         <div class="modal-body">
             <div class="form-group">
                 <label class="form-label">Failed Login High Threshold (Attempts per IP):</label>
-                <input type="number" id="tuneFailedHigh" class="form-control" value="{{ thresholds.failed_high }}" min="2" max="20">
+                <input type="number" id="tuneFailedHigh" class="form-control" value="{{ thresholds.failed_high }}"
+                    min="2" max="20">
                 <small class="text-muted">Default is 6 failed logins per IP.</small>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Rapid Burst Attempt Count:</label>
-                <input type="number" id="tuneBurstCount" class="form-control" value="{{ thresholds.burst_count }}" min="2" max="10">
+                <input type="number" id="tuneBurstCount" class="form-control" value="{{ thresholds.burst_count }}"
+                    min="2" max="10">
                 <small class="text-muted">Default is 4 attempts within the window.</small>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Burst Time Window (Seconds):</label>
-                <input type="number" id="tuneBurstWindow" class="form-control" value="{{ thresholds.burst_window }}" min="10" max="300">
+                <input type="number" id="tuneBurstWindow" class="form-control" value="{{ thresholds.burst_window }}"
+                    min="10" max="300">
                 <small class="text-muted">Default is 60 seconds.</small>
             </div>
 
@@ -278,12 +281,12 @@
 <script>
     const severityData = {
         CRITICAL: {{ severity_counts.CRITICAL or 0 }},
-        HIGH: {{ severity_counts.HIGH or 0 }},
-        MEDIUM: {{ severity_counts.MEDIUM or 0 }},
-        LOW: {{ severity_counts.LOW or 0 }}
+    HIGH: { { severity_counts.HIGH or 0 } },
+    MEDIUM: { { severity_counts.MEDIUM or 0 } },
+    LOW: { { severity_counts.LOW or 0 } }
     };
 
-    const hourlyActivityData = {{ hourly_activity|tojson }};
+    const hourlyActivityData = {{ hourly_activity| tojson }};
     initDashboardCharts(severityData, hourlyActivityData);
 
     function openThresholdModal() {
@@ -300,16 +303,16 @@
         };
         fetch('/api/reconfigure', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                closeThresholdModal();
-                location.reload();
-            }
-        });
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    closeThresholdModal();
+                    location.reload();
+                }
+            });
     }
 </script>
 {% endblock %}

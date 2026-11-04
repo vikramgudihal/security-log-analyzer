@@ -1,5 +1,5 @@
 """
-CodeNova Security Log Analyzer Engine Package.
+Security Log Analyzer Engine Package.
 """
 
 from .normalizer import LogEvent, Incident, ParseStats
@@ -21,4 +21,3 @@ __all__ = [
     "DetectionEngine",
     "ReportGenerator",
 ]
-

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Security Log Analyzer - Student Internship Web Application
+   Security Log Analyzer - Security Operations Web Application
    Clean, modern, human UI (Bootstrap / Tailwind aesthetic)
    No AI sci-fi neon styling, no glowing effects, no excessive boxes.
    ========================================================================== */
@@ -252,6 +252,30 @@ body {
 .text-primary { color: #2563eb !important; }
 .font-mono { font-family: var(--font-mono) !important; }
 
+.text-danger {
+    color: var(--neon-red) !important;
+}
+
+.text-warning {
+    color: var(--neon-orange) !important;
+}
+
+.text-cyan {
+    color: var(--neon-cyan) !important;
+}
+
+.text-critical {
+    color: #ef4444 !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.font-mono {
+    font-family: var(--font-mono) !important;
+}
+
 /* ==========================================================================
    Clean Content Cards
    ========================================================================== */
@@ -278,6 +302,21 @@ body {
 
 .card-body {
     padding: 1.25rem;
+}
+
+.bullet-cyan {
+    background-color: var(--neon-cyan);
+    box-shadow: 0 0 6px var(--neon-cyan);
+}
+
+.bullet-red {
+    background-color: var(--neon-red);
+    box-shadow: 0 0 6px var(--neon-red);
+}
+
+.bullet-purple {
+    background-color: var(--neon-purple);
+    box-shadow: 0 0 6px var(--neon-purple);
 }
 
 .card-link {
@@ -342,6 +381,22 @@ body {
 .dot-high { background-color: #f87171; }
 .dot-medium { background-color: #f59e0b; }
 .dot-low { background-color: #16a34a; }
+
+.bg-critical {
+    background-color: #ef4444;
+}
+
+.bg-high {
+    background-color: #f87171;
+}
+
+.bg-medium {
+    background-color: #f59e0b;
+}
+
+.bg-low {
+    background-color: #10b981;
+}
 
 /* ==========================================================================
    Clean Tables (Bootstrap / Simple Data Table)
@@ -422,6 +477,30 @@ body {
     color: #991b1b;
 }
 
+.event-login_failed {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.event-login_success {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.event-web_request {
+    background-color: rgba(6, 182, 212, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.event-session_open {
+    background-color: rgba(139, 92, 246, 0.2);
+    color: #c084fc;
+    border: 1px solid rgba(139, 92, 246, 0.4);
+}
+
 /* ==========================================================================
    Buttons & Controls (Clean Web Style)
    ========================================================================== */
@@ -444,6 +523,7 @@ body {
     background-color: var(--color-primary);
     color: #ffffff;
 }
+
 .btn-primary:hover {
     background-color: var(--color-primary-hover);
 }
@@ -453,6 +533,7 @@ body {
     color: var(--text-primary);
     border-color: var(--border-color);
 }
+
 .btn-secondary:hover {
     background-color: #f8fafc;
     border-color: var(--border-hover);
@@ -463,6 +544,7 @@ body {
     color: var(--text-secondary);
     border-color: var(--border-color);
 }
+
 .btn-outline:hover {
     color: var(--color-primary);
     border-color: var(--color-primary);
@@ -479,6 +561,15 @@ body {
 
 .btn-sm { padding: 0.3rem 0.65rem; font-size: 0.78rem; }
 .btn-block { width: 100%; }
+
+.btn-xs {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.72rem;
+}
+
+.btn-block {
+    width: 100%;
+}
 
 /* Form Controls */
 .form-group {
@@ -595,6 +686,7 @@ body {
     background-color: #f8fafc;
 }
 
+
 .sample-title {
     font-weight: 600;
     font-size: 0.88rem;
@@ -651,6 +743,7 @@ body {
     margin-bottom: 0.65rem;
 }
 
+
 .incident-reason-box {
     background-color: #f8fafc;
     border: 1px solid var(--border-color);
@@ -659,6 +752,22 @@ body {
     font-size: 0.82rem;
     color: var(--text-secondary);
     margin-bottom: 0.65rem;
+}
+
+.incident-mini-item.border-critical {
+    border-left-color: #ef4444;
+}
+
+.incident-mini-item.border-high {
+    border-left-color: #f87171;
+}
+
+.incident-mini-item.border-medium {
+    border-left-color: #f59e0b;
+}
+
+.incident-mini-item.border-low {
+    border-left-color: #10b981;
 }
 
 .remediation-box {
@@ -689,6 +798,54 @@ body {
     border-radius: 6px;
     overflow-x: auto;
     max-height: 380px;
+}
+
+.mb-1 {
+    margin-bottom: 0.25rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.mb-3 {
+    margin-bottom: 0.75rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.mt-2 {
+    margin-top: 0.5rem;
+}
+
+.mt-3 {
+    margin-top: 0.75rem;
+}
+
+.mt-4 {
+    margin-top: 1rem;
+}
+
+.p-3 {
+    padding: 0.75rem;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.align-center {
+    align-items: center;
 }
 
 /* Flash Messages */
@@ -723,6 +880,13 @@ body {
     padding: 1rem;
 }
 
+
+.sample-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+
 .modal-dialog {
     background-color: #ffffff;
     border: 1px solid var(--border-color);
@@ -731,6 +895,22 @@ body {
     width: 100%;
     padding: 1.25rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.incident-card.border-critical {
+    border-left-color: #ef4444;
+}
+
+.incident-card.border-high {
+    border-left-color: #f87171;
+}
+
+.incident-card.border-medium {
+    border-left-color: #f59e0b;
+}
+
+.incident-card.border-low {
+    border-left-color: #10b981;
 }
 
 .modal-header {
@@ -742,12 +922,38 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
+.containment-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #f87171;
+}
+
+.containment-box code {
+    color: #fca5a5;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
 .modal-close {
     background: transparent;
     border: none;
     font-size: 1.2rem;
     cursor: pointer;
     color: var(--text-muted);
+}
+
+.report-compliance-list {
+    padding-left: 1.2rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.empty-icon {
+    font-size: 2.8rem;
+    display: block;
+    margin-bottom: 0.6rem;
 }
 
 /* Footer */
