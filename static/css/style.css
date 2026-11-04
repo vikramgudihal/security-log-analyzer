@@ -127,6 +127,18 @@ body {
     color: var(--text-dark);
 }
 
+.brand-logo-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    color: var(--color-primary);
+}
+
 .brand-icon {
     color: var(--color-primary);
 }
@@ -973,13 +985,25 @@ body {
 .alert-warning { background-color: #fffbeb; border-color: #fde68a; color: #92400e; }
 .alert-info { background-color: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
 
+.clean-log-banner {
+    display: flex;
+    align-items: center;
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.78rem;
+    color: #166534;
+    line-height: 1.4;
+}
+
 /* Footer */
 .footer {
     background-color: var(--bg-card);
     border-top: 1px solid var(--border-light);
-    padding: 1.2rem 0;
+    padding: 1.25rem 0;
     margin-top: auto;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     color: var(--text-muted);
 }
 
@@ -988,8 +1012,7 @@ body {
     margin: 0 auto;
     padding: 0 1.5rem;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    text-align: center;
 }

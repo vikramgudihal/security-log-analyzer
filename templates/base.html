@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dashboard{% endblock %} - Security Log Analyzer</title>
+    <title>{% block title %}Dashboard{% endblock %} - SOC Log Analyzer</title>
     <!-- Google Fonts: Inter & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,19 +27,25 @@
     <header class="navbar">
         <div class="nav-container">
             <a href="{{ url_for('dashboard') }}" class="nav-brand">
-                <svg class="brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    <path d="M9 12l2 2 4-4"/>
-                </svg>
-                <span class="brand-title">Security Log Analyzer</span>
-                <span class="brand-pill">Task 4</span>
+                <div class="brand-logo-wrap">
+                    <svg class="brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                        <line x1="12" y1="9" x2="12" y2="6"/>
+                        <line x1="12" y1="18" x2="12" y2="15"/>
+                        <line x1="9" y1="12" x2="6" y2="12"/>
+                        <line x1="18" y1="12" x2="15" y2="12"/>
+                    </svg>
+                </div>
+                <span class="brand-title">SOC Log Analyzer</span>
+                <span class="brand-pill">Threat Hunter</span>
             </a>
 
             <nav class="nav-menu">
                 <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">
                     Dashboard
                 </a>
-                <a href="{{ url_for('index') }}" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                <a href="{{ url_for('index') }}" class="nav-link {% if request.path == '/index' or request.path == '/' %}active{% endif %}">
                     Upload Logs
                 </a>
                 <a href="{{ url_for('events') }}" class="nav-link {% if request.path == '/events' %}active{% endif %}">
@@ -78,15 +84,10 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Clean Footer -->
+    <!-- Clean Minimal Footer -->
     <footer class="footer">
-        <div class="footer-container">
-            <div>
-                <strong>Security Log Analyzer</strong> — Incident Response & Anomaly Detection System
-            </div>
-            <div class="footer-meta">
-                Python 3 • Flask • Regex • Datetime • Tabulate • Chart.js
-            </div>
+        <div class="footer-container" style="justify-content: center; text-align: center;">
+            <p>&copy; 2026 Security Log Analyzer • Developed by Vikram G</p>
         </div>
     </footer>
 

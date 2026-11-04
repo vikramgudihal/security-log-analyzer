@@ -46,6 +46,48 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
+ * Custom Chart.js Center Text Plugin for Doughnut Chart
+ * Displays either total incident count or 'CLEAN' in the center hole.
+ */
+const doughnutCenterTextPlugin = {
+    id: 'doughnutCenterText',
+    afterDraw(chart) {
+        if (chart.config.type !== 'doughnut') return;
+        const { ctx, chartArea } = chart;
+        if (!chartArea) return;
+
+        const centerX = (chartArea.left + chartArea.right) / 2;
+        const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+        const dataset = chart.config.data.datasets[0];
+        const total = dataset ? (dataset.totalIncidents || 0) : 0;
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        if (total === 0) {
+            ctx.font = '700 30px "JetBrains Mono", monospace';
+            ctx.fillStyle = '#10b981';
+            ctx.fillText('0', centerX, centerY - 9);
+
+            ctx.font = '700 11px Inter, sans-serif';
+            ctx.fillStyle = '#059669';
+            ctx.fillText('ALL CLEAR', centerX, centerY + 15);
+        } else {
+            ctx.font = '700 30px "JetBrains Mono", monospace';
+            ctx.fillStyle = '#0f172a';
+            ctx.fillText(String(total), centerX, centerY - 9);
+
+            ctx.font = '700 10px Inter, sans-serif';
+            ctx.fillStyle = '#64748b';
+            ctx.fillText('THREATS', centerX, centerY + 15);
+        }
+        ctx.restore();
+    }
+};
+
+/**
  * Initializes clean, professional Chart.js charts on the dashboard.
  * @param {Object} severityData - Counts for CRITICAL, HIGH, MEDIUM, LOW
  * @param {Object} hourlyActivity - Hourly buckets of failed and successful logins
@@ -77,10 +119,11 @@ function initDashboardCharts(severityData, hourlyActivity) {
         let dataValues = [crit, high, med, low];
         let bgColors = ['#dc2626', '#f87171', '#f59e0b', '#10b981'];
 
+        // If dataset has 0 anomalies, show a clean emerald ring indicating benign state
         if (total === 0) {
-            labels = ['No Incidents'];
+            labels = ['Baseline Normal'];
             dataValues = [1];
-            bgColors = ['#e2e8f0'];
+            bgColors = ['#10b981'];
         }
 
         new Chart(ctxDoughnut, {
@@ -90,11 +133,13 @@ function initDashboardCharts(severityData, hourlyActivity) {
                 datasets: [{
                     data: dataValues,
                     backgroundColor: bgColors,
-                    borderWidth: 2,
+                    borderWidth: 3,
                     borderColor: '#ffffff',
-                    hoverOffset: total > 0 ? 4 : 0
+                    hoverOffset: total > 0 ? 5 : 0,
+                    totalIncidents: total
                 }]
             },
+            plugins: [doughnutCenterTextPlugin],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
@@ -131,7 +176,6 @@ function initDashboardCharts(severityData, hourlyActivity) {
 
         if (sortedHours.length > 0) {
             labels = sortedHours.map(h => {
-                // Shorten '2026-10-21 09:00' to '10-21 09:00'
                 const parts = h.split(' ');
                 if (parts.length === 2) {
                     const datePart = parts[0].slice(5); // MM-DD
@@ -142,7 +186,7 @@ function initDashboardCharts(severityData, hourlyActivity) {
             failedSeries = sortedHours.map(h => hourlyActivity[h].failed || 0);
             successSeries = sortedHours.map(h => hourlyActivity[h].success || 0);
         } else {
-            labels = ['No Activity'];
+            labels = ['No Recorded Activity'];
             failedSeries = [0];
             successSeries = [0];
         }

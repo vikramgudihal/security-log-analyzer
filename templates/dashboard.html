@@ -172,6 +172,13 @@
                     <span class="legend-count">{{ severity_counts.LOW or 0 }}</span>
                 </div>
             </div>
+
+            {% if (severity_counts.CRITICAL or 0) == 0 and (severity_counts.HIGH or 0) == 0 and (severity_counts.MEDIUM or 0) == 0 and (severity_counts.LOW or 0) == 0 %}
+            <div class="clean-log-banner mt-3">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span><strong>Baseline Normal:</strong> No anomalies or threats detected in this log dataset.</span>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
