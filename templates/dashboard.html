@@ -1,212 +1,119 @@
 {% extends "base.html" %}
 
-{% block title %}SOC Security Command Dashboard{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<!-- Tactical Status & Command Bar -->
-<div class="soc-command-bar">
-    <div class="defcon-badge {{ defcon.class }}">
-        <span class="defcon-pulse"></span>
-        <span class="defcon-text">{{ defcon.label }}</span>
+<!-- Status Bar -->
+<div class="status-banner">
+    <div class="status-left">
+        <strong>Active Dataset:</strong>
+        <span class="font-mono text-primary">{{ filename }}</span>
+        <span class="text-muted">({{ stats.format_detected }})</span>
+        <span class="status-pill {{ defcon.level|lower }}">
+            Status: {{ defcon.level }}
+        </span>
     </div>
-    <div class="soc-telemetry-meta">
-        <span class="meta-label">ACTIVE LOG:</span>
-        <span class="meta-file font-mono">{{ filename }}</span>
-        <span class="meta-separator">•</span>
-        <span class="meta-label">SCHEMA:</span>
-        <span class="meta-format">{{ stats.format_detected }}</span>
-    </div>
-    <div class="command-actions">
-        <button class="btn btn-secondary btn-sm" onclick="openThresholdModal()">
-            ⚙️ Tune Rules
-        </button>
-        <a href="{{ url_for('export_report', format_type='markdown') }}" class="btn btn-primary btn-sm">
-            📥 Export Report (.MD)
-        </a>
-        <a href="{{ url_for('index') }}" class="btn btn-outline btn-sm">
-            🔄 Switch Ingest Stream
-        </a>
+    <div class="status-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openThresholdModal()">Tune Rules</button>
+        <a href="{{ url_for('export_report', format_type='markdown') }}" class="btn btn-primary btn-sm">Export Report (.md)</a>
+        <a href="{{ url_for('index') }}" class="btn btn-outline btn-sm">Change Log File</a>
     </div>
 </div>
 
-<!-- 6 Tactical KPI Cards -->
-<div class="metrics-grid">
-    <div class="metric-card metric-primary">
-        <div class="metric-header">
-            <span class="metric-label">Total Log Events</span>
-            <span class="metric-icon">📑</span>
-        </div>
-        <div class="metric-value font-mono">{{ total_events }}</div>
-        <div class="metric-footer">Parsed: {{ stats.parsed_events }} | Malformed: {{ stats.failed_lines }}</div>
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-title">Total Log Events</span>
+        <span class="kpi-value font-mono">{{ total_events }}</span>
+        <span class="kpi-sub">Parsed: {{ stats.parsed_events }} | Malformed: {{ stats.failed_lines }}</span>
     </div>
 
-    <div class="metric-card metric-success">
-        <div class="metric-header">
-            <span class="metric-label">Successful Logins</span>
-            <span class="metric-icon">🟢</span>
-        </div>
-        <div class="metric-value font-mono text-success">{{ successful_logins }}</div>
-        <div class="metric-footer">Legitimate authenticated sessions</div>
+    <div class="kpi-card">
+        <span class="kpi-title">Successful Logins</span>
+        <span class="kpi-value font-mono text-success">{{ successful_logins }}</span>
+        <span class="kpi-sub">Legitimate authentications</span>
     </div>
 
-    <div class="metric-card metric-danger">
-        <div class="metric-header">
-            <span class="metric-label">Failed Logins</span>
-            <span class="metric-icon">🔴</span>
-        </div>
-        <div class="metric-value font-mono text-danger">{{ failed_logins }}</div>
-        <div class="metric-footer">Auth errors & brute-force attempts</div>
+    <div class="kpi-card">
+        <span class="kpi-title">Failed Logins</span>
+        <span class="kpi-value font-mono text-danger">{{ failed_logins }}</span>
+        <span class="kpi-sub">Authentication errors</span>
     </div>
 
-    <div class="metric-card metric-warning">
-        <div class="metric-header">
-            <span class="metric-label">Suspicious Source IPs</span>
-            <span class="metric-icon">🌐</span>
-        </div>
-        <div class="metric-value font-mono text-warning">{{ suspicious_ip_count }}</div>
-        <div class="metric-footer">Flagged adversary endpoints</div>
+    <div class="kpi-card">
+        <span class="kpi-title">Suspicious Source IPs</span>
+        <span class="kpi-value font-mono text-warning">{{ suspicious_ip_count }}</span>
+        <span class="kpi-sub">Flagged IP addresses</span>
     </div>
 
-    <div class="metric-card metric-cyan">
-        <div class="metric-header">
-            <span class="metric-label">Detected Anomalies</span>
-            <span class="metric-icon">⚡</span>
-        </div>
-        <div class="metric-value font-mono text-cyan">{{ detected_anomalies_count }}</div>
-        <div class="metric-footer">Triggered correlation rules</div>
+    <div class="kpi-card">
+        <span class="kpi-title">Detected Anomalies</span>
+        <span class="kpi-value font-mono text-primary">{{ detected_anomalies_count }}</span>
+        <span class="kpi-sub">Rule violations triggered</span>
     </div>
 
-    <div class="metric-card metric-critical">
-        <div class="metric-header">
-            <span class="metric-label">Critical Incidents</span>
-            <span class="metric-icon">🚨</span>
-        </div>
-        <div class="metric-value font-mono text-critical">{{ severity_counts.CRITICAL or 0 }}</div>
-        <div class="metric-footer">Immediate containment required</div>
+    <div class="kpi-card">
+        <span class="kpi-title">Critical Incidents</span>
+        <span class="kpi-value font-mono text-danger">{{ severity_counts.CRITICAL or 0 }}</span>
+        <span class="kpi-sub">Requires immediate review</span>
     </div>
 </div>
 
-<!-- Visual Analytics & Charts Section -->
-<div class="grid-2-col charts-row">
-    <!-- Chart 1: Failed Login Activity Timeline -->
-    <div class="card chart-card">
+<!-- Charts Section -->
+<div class="grid-2">
+    <!-- Chart 1: Hourly Activity -->
+    <div class="card">
         <div class="card-header">
-            <div class="card-title-group">
-                <span class="card-bullet bullet-cyan"></span>
-                <h2 class="card-title">Authentication Activity & Burst Timeline</h2>
-            </div>
-            <span class="badge-neutral font-mono">HOURLY AGGREGATION</span>
+            <h2 class="card-title">Authentication Activity (Hourly)</h2>
+            <span class="text-muted text-sm">Timeline</span>
         </div>
         <div class="card-body">
-            <div class="chart-container">
+            <div class="chart-box">
                 <canvas id="loginActivityChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Chart 2: Incident Severity Distribution -->
-    <div class="card chart-card">
+    <!-- Chart 2: Severity Distribution -->
+    <div class="card">
         <div class="card-header">
-            <div class="card-title-group">
-                <span class="card-bullet bullet-red"></span>
-                <h2 class="card-title">Incident Threat Classification Matrix</h2>
-            </div>
-            <span class="badge-neutral font-mono">4-TIER SOC</span>
+            <h2 class="card-title">Incidents by Severity</h2>
+            <span class="text-muted text-sm">Classification</span>
         </div>
         <div class="card-body">
-            <div class="chart-container-doughnut">
+            <div class="chart-doughnut-box">
                 <canvas id="severityDoughnutChart"></canvas>
             </div>
-            <div class="severity-legend">
-                <span class="legend-item"><span class="legend-color bg-critical"></span> Critical: <strong>{{ severity_counts.CRITICAL or 0 }}</strong></span>
-                <span class="legend-item"><span class="legend-color bg-high"></span> High: <strong>{{ severity_counts.HIGH or 0 }}</strong></span>
-                <span class="legend-item"><span class="legend-color bg-medium"></span> Medium: <strong>{{ severity_counts.MEDIUM or 0 }}</strong></span>
-                <span class="legend-item"><span class="legend-color bg-low"></span> Low: <strong>{{ severity_counts.LOW or 0 }}</strong></span>
+            <div class="chart-legend">
+                <div class="chart-legend-item">
+                    <span class="legend-dot dot-critical"></span> Critical: {{ severity_counts.CRITICAL or 0 }}
+                </div>
+                <div class="chart-legend-item">
+                    <span class="legend-dot dot-high"></span> High: {{ severity_counts.HIGH or 0 }}
+                </div>
+                <div class="chart-legend-item">
+                    <span class="legend-dot dot-medium"></span> Medium: {{ severity_counts.MEDIUM or 0 }}
+                </div>
+                <div class="chart-legend-item">
+                    <span class="legend-dot dot-low"></span> Low: {{ severity_counts.LOW or 0 }}
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MITRE ATT&CK Matrix Panel -->
-<div class="card">
-    <div class="card-header">
-        <div class="card-title-group">
-            <span class="card-bullet bullet-purple"></span>
-            <h2 class="card-title">MITRE ATT&CK® Threat Vector Alignment</h2>
-        </div>
-        <a href="{{ url_for('about') }}" class="card-link">View Technique Breakdown →</a>
-    </div>
-    <div class="card-body">
-        <div class="mitre-badges-grid">
-            <div class="mitre-card {% if mitre_matrix.get('T1110 (Brute Force)') or mitre_matrix.get('T1110.001 (Brute Force: Password Guessing)') %}mitre-active{% endif %}">
-                <span class="mitre-id">T1110.001</span>
-                <span class="mitre-name">Password Guessing</span>
-                <span class="mitre-tactic">Credential Access</span>
-                <span class="mitre-count">
-                    {{ (mitre_matrix.get('T1110.001 (Brute Force: Password Guessing)') or 0) + (mitre_matrix.get('T1110.003 (Brute Force: Password Spraying)') or 0) }} Hits
-                </span>
-            </div>
-
-            <div class="mitre-card {% if mitre_matrix.get('T1110.004 (Brute Force: Credential Stuffing)') %}mitre-active{% endif %}">
-                <span class="mitre-id">T1110.004</span>
-                <span class="mitre-name">Credential Stuffing</span>
-                <span class="mitre-tactic">Credential Access</span>
-                <span class="mitre-count">{{ mitre_matrix.get('T1110.004 (Brute Force: Credential Stuffing)') or 0 }} Hits</span>
-            </div>
-
-            <div class="mitre-card {% if mitre_matrix.get('T1078 (Valid Accounts: Account Takeover)') %}mitre-active-critical{% endif %}">
-                <span class="mitre-id">T1078</span>
-                <span class="mitre-name">Account Takeover</span>
-                <span class="mitre-tactic">Defense Evasion</span>
-                <span class="mitre-count">{{ mitre_matrix.get('T1078 (Valid Accounts: Account Takeover)') or 0 }} Hits</span>
-            </div>
-
-            <div class="mitre-card {% if mitre_matrix.get('T1078.003 (Valid Accounts: Local Accounts (Abnormal Time))') %}mitre-active{% endif %}">
-                <span class="mitre-id">T1078.003</span>
-                <span class="mitre-name">Off-Hours Logins</span>
-                <span class="mitre-tactic">Initial Access</span>
-                <span class="mitre-count">{{ mitre_matrix.get('T1078.003 (Valid Accounts: Local Accounts (Abnormal Time))') or 0 }} Hits</span>
-            </div>
-
-            <div class="mitre-card {% if mitre_matrix.get('T1190 (Exploit Public-Facing Application: SQL Injection)') %}mitre-active-critical{% endif %}">
-                <span class="mitre-id">T1190</span>
-                <span class="mitre-name">SQL Injection</span>
-                <span class="mitre-tactic">Initial Access</span>
-                <span class="mitre-count">{{ mitre_matrix.get('T1190 (Exploit Public-Facing Application: SQL Injection)') or 0 }} Hits</span>
-            </div>
-
-            <div class="mitre-card {% if mitre_matrix.get('T1083 (File and Directory Discovery: Path Traversal)') %}mitre-active{% endif %}">
-                <span class="mitre-id">T1083</span>
-                <span class="mitre-name">Path Traversal (LFI)</span>
-                <span class="mitre-tactic">Discovery</span>
-                <span class="mitre-count">{{ mitre_matrix.get('T1083 (File and Directory Discovery: Path Traversal)') or 0 }} Hits</span>
-            </div>
-
-            <div class="mitre-card {% if mitre_matrix.get('T1595.002 (Active Scanning: Vulnerability Scanning)') %}mitre-active{% endif %}">
-                <span class="mitre-id">T1595.002</span>
-                <span class="mitre-name">Vulnerability Scanning</span>
-                <span class="mitre-tactic">Reconnaissance</span>
-                <span class="mitre-count">{{ mitre_matrix.get('T1595.002 (Active Scanning: Vulnerability Scanning)') or 0 }} Hits</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Threat Matrix: Top Suspicious IPs and Flagged Incidents -->
-<div class="grid-2-col">
+<!-- Threat Matrix: Top Suspicious IPs & Flagged Incidents -->
+<div class="grid-2">
     <!-- Top Suspicious IPs -->
     <div class="card">
         <div class="card-header">
-            <div class="card-title-group">
-                <span class="card-bullet bullet-red"></span>
-                <h2 class="card-title">Top Offending Source IPs</h2>
-            </div>
-            <a href="{{ url_for('events') }}" class="card-link">View All Events →</a>
+            <h2 class="card-title">Top Flagged Source IPs</h2>
+            <a href="{{ url_for('events') }}" class="card-link">All Events →</a>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="padding: 0;">
             {% if top_suspicious_ips %}
             <div class="table-responsive">
-                <table class="data-table">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Source IP</th>
@@ -220,22 +127,18 @@
                         {% for ip in top_suspicious_ips %}
                         <tr>
                             <td>
-                                <a href="{{ url_for('investigate_ip', ip=ip.ip) }}" class="ip-link font-mono">
-                                    {{ ip.ip }}
-                                </a>
+                                <strong class="font-mono">{{ ip.ip }}</strong>
                                 {% if ip.ip in quarantined_ips %}
-                                    <span class="tag-quarantined">QUARANTINED</span>
+                                    <span class="badge badge-danger">Blocked</span>
                                 {% endif %}
                             </td>
                             <td><strong class="text-danger font-mono">{{ ip.failed_logins }}</strong></td>
-                            <td class="text-xs">{{ ip.unique_users|join(", ") if ip.unique_users else "N/A" }}</td>
+                            <td>{{ ip.unique_users|join(", ") if ip.unique_users else "None" }}</td>
                             <td>
-                                <span class="badge-{{ ip.highest_severity|lower }}">{{ ip.highest_severity }}</span>
+                                <span class="badge badge-{{ ip.highest_severity|lower }}">{{ ip.highest_severity }}</span>
                             </td>
                             <td>
-                                <a href="{{ url_for('investigate_ip', ip=ip.ip) }}" class="btn btn-outline btn-xs">
-                                    🎯 Dossier
-                                </a>
+                                <a href="{{ url_for('investigate_ip', ip=ip.ip) }}" class="btn btn-outline btn-sm">Investigate</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -248,87 +151,83 @@
         </div>
     </div>
 
-    <!-- Flagged Incidents Summary -->
+    <!-- Recent Incidents -->
     <div class="card">
         <div class="card-header">
-            <div class="card-title-group">
-                <span class="card-bullet bullet-cyan"></span>
-                <h2 class="card-title">Active Security Incidents ({{ detected_anomalies_count }})</h2>
-            </div>
-            <a href="{{ url_for('incidents') }}" class="card-link">All Incidents →</a>
+            <h2 class="card-title">Recent Flagged Incidents</h2>
+            <a href="{{ url_for('incidents') }}" class="card-link">All Incidents ({{ detected_anomalies_count }}) →</a>
         </div>
         <div class="card-body">
             {% if incidents %}
-            <div class="incidents-mini-list">
-                {% for inc in incidents %}
-                <div class="incident-mini-item border-{{ inc.severity|lower }}">
-                    <div class="incident-mini-top">
-                        <span class="badge-{{ inc.severity|lower }}">{{ inc.severity }}</span>
-                        <strong>{{ inc.rule_name }}</strong>
-                        <span class="font-mono text-cyan text-xs">{{ inc.source_ip }}</span>
-                        <span class="text-muted text-xs ml-auto">{{ inc.timestamp }}</span>
+            {% for inc in incidents %}
+            <div class="incident-item {{ inc.severity|lower }}">
+                <div class="incident-top">
+                    <div class="incident-heading">
+                        <span class="badge badge-{{ inc.severity|lower }}">{{ inc.severity }}</span>
+                        <span class="incident-name">{{ inc.rule_name }}</span>
                     </div>
-                    <p class="incident-mini-desc">{{ inc.description }}</p>
+                    <span class="text-muted text-sm font-mono">{{ inc.timestamp }}</span>
                 </div>
-                {% endfor %}
+                <div class="incident-body">
+                    {{ inc.description }}
+                </div>
+                <div class="text-muted" style="font-size: 0.8rem;">
+                    Source: <strong class="font-mono">{{ inc.source_ip }}</strong> | Rule Ref: {{ inc.mitre_id }}
+                </div>
             </div>
+            {% endfor %}
             {% else %}
-            <p class="text-success p-3">✔ Zero security incidents detected. Nominal operational state.</p>
+            <p class="text-success p-3">No security incidents detected. Normal activity.</p>
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Recent Security Events Table -->
+<!-- Recent Log Events Table -->
 <div class="card">
     <div class="card-header">
-        <div class="card-title-group">
-            <span class="card-bullet bullet-cyan"></span>
-            <h2 class="card-title">Real-Time Telemetry Log Stream</h2>
-        </div>
-        <div class="table-header-actions">
-            <a href="{{ url_for('events') }}" class="card-link">Search & Filter All Events ({{ total_events }}) →</a>
-        </div>
+        <h2 class="card-title">Recent Log Entries</h2>
+        <a href="{{ url_for('events') }}" class="card-link">View All Events ({{ total_events }}) →</a>
     </div>
-    <div class="card-body">
+    <div class="card-body" style="padding: 0;">
         {% if recent_events %}
         <div class="table-responsive">
-            <table class="data-table">
+            <table class="table">
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Timestamp (UTC)</th>
+                        <th>Timestamp</th>
                         <th>Source IP</th>
                         <th>Event Type</th>
                         <th>Status</th>
-                        <th>User / URI</th>
-                        <th>Raw Telemetry Record</th>
+                        <th>User / Path</th>
+                        <th>Raw Log Entry</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for e in recent_events %}
                     <tr>
-                        <td class="font-mono text-muted text-xs">{{ e.id }}</td>
-                        <td><code class="font-mono">{{ e.timestamp }}</code></td>
+                        <td class="text-muted font-mono">{{ e.id }}</td>
+                        <td class="font-mono">{{ e.timestamp }}</td>
                         <td>
-                            <a href="{{ url_for('investigate_ip', ip=e.source_ip) }}" class="ip-link font-mono">
+                            <a href="{{ url_for('investigate_ip', ip=e.source_ip) }}" class="font-mono text-primary">
                                 {{ e.source_ip }}
                             </a>
                         </td>
                         <td>
-                            <span class="event-tag event-{{ e.event_type|lower }}">{{ e.event_type }}</span>
+                            <span class="event-type-tag {% if e.event_type == 'LOGIN_FAILED' %}failure{% endif %}">{{ e.event_type }}</span>
                         </td>
                         <td>
                             {% if e.auth_status == 'SUCCESS' %}
-                                <span class="badge-success">SUCCESS</span>
+                                <span class="badge badge-success">Success</span>
                             {% elif e.auth_status == 'FAILURE' %}
-                                <span class="badge-danger">FAILURE</span>
+                                <span class="badge badge-danger">Failure</span>
                             {% else %}
-                                <span class="badge-neutral">-</span>
+                                <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td class="text-sm">{{ e.username if e.username != 'N/A' else e.url }}</td>
-                        <td class="code-cell font-mono">{{ e.message }}</td>
+                        <td>{{ e.username if e.username != 'N/A' else e.url }}</td>
+                        <td class="code-snippet font-mono">{{ e.message }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -340,35 +239,35 @@
     </div>
 </div>
 
-<!-- Modal: Threshold Tuner -->
-<div id="thresholdModal" class="soc-modal" style="display:none;">
-    <div class="soc-modal-content card">
-        <div class="card-header">
-            <h3 class="card-title">⚙️ Tune Detection Rules & Thresholds</h3>
+<!-- Threshold Tuning Modal -->
+<div id="thresholdModal" class="modal-overlay" style="display:none;">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3 class="card-title">Tune Detection Rules</h3>
             <button class="modal-close" onclick="closeThresholdModal()">×</button>
         </div>
-        <div class="card-body">
-            <div class="tune-field mb-3">
-                <label class="tune-label">Failed Login High Threshold (Attempts per IP):</label>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Failed Login High Threshold (Attempts per IP):</label>
                 <input type="number" id="tuneFailedHigh" class="form-control" value="{{ thresholds.failed_high }}" min="2" max="20">
-                <span class="tune-hint">Default: 6 failed attempts triggers HIGH severity.</span>
+                <small class="text-muted">Default is 6 failed logins per IP.</small>
             </div>
 
-            <div class="tune-field mb-3">
-                <label class="tune-label">Rapid Burst Failure Count (Count):</label>
+            <div class="form-group">
+                <label class="form-label">Rapid Burst Attempt Count:</label>
                 <input type="number" id="tuneBurstCount" class="form-control" value="{{ thresholds.burst_count }}" min="2" max="10">
-                <span class="tune-hint">Default: 4 attempts within burst window triggers alert.</span>
+                <small class="text-muted">Default is 4 attempts within the window.</small>
             </div>
 
-            <div class="tune-field mb-3">
-                <label class="tune-label">Burst Sliding Window (Seconds):</label>
+            <div class="form-group">
+                <label class="form-label">Burst Time Window (Seconds):</label>
                 <input type="number" id="tuneBurstWindow" class="form-control" value="{{ thresholds.burst_window }}" min="10" max="300">
-                <span class="tune-hint">Default: 60 seconds sliding window.</span>
+                <small class="text-muted">Default is 60 seconds.</small>
             </div>
 
-            <div class="d-flex justify-between mt-4">
-                <button class="btn btn-outline btn-sm" onclick="closeThresholdModal()">Cancel</button>
-                <button class="btn btn-primary btn-sm" onclick="applyThresholds()">⚡ Apply & Re-Analyze</button>
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.25rem;">
+                <button class="btn btn-secondary btn-sm" onclick="closeThresholdModal()">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="applyThresholds()">Apply Changes</button>
             </div>
         </div>
     </div>

@@ -1,71 +1,65 @@
 {% extends "base.html" %}
 
-{% block title %}Security Incident Reports{% endblock %}
+{% block title %}Reports{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div>
         <h1 class="page-title">Security Incident Reports</h1>
-        <p class="page-subtitle">Exportable, publication-ready SOC reports for: <strong>{{ filename }}</strong></p>
+        <p class="page-subtitle">Download structured security summary reports for: <strong>{{ filename }}</strong></p>
     </div>
-    <div class="export-btn-group">
-        <a href="{{ url_for('export_report', format_type='markdown') }}" class="btn btn-primary">
-            📄 Download Markdown (.md)
-        </a>
-        <a href="{{ url_for('export_report', format_type='text') }}" class="btn btn-secondary">
-            📑 Download Plaintext (.txt)
-        </a>
-        <a href="{{ url_for('export_report', format_type='csv') }}" class="btn btn-outline">
-            📊 Download Incidents (.csv)
-        </a>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{{ url_for('export_report', format_type='markdown') }}" class="btn btn-primary btn-sm">Download Markdown (.md)</a>
+        <a href="{{ url_for('export_report', format_type='text') }}" class="btn btn-secondary btn-sm">Download Plaintext (.txt)</a>
+        <a href="{{ url_for('export_report', format_type='csv') }}" class="btn btn-outline btn-sm">Download CSV (.csv)</a>
     </div>
 </div>
 
-<div class="grid-2-col">
-    <!-- Report Overview & Content Guide -->
+<div class="grid-2">
+    <!-- Required sections check -->
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title">📋 11-Point Report Specification Compliance</h2>
-            <span class="badge-success">SOC Standard</span>
+            <h2 class="card-title">Report Specification Checklist</h2>
+            <span class="badge badge-success">11/11 Covered</span>
         </div>
         <div class="card-body">
-            <p>Every generated report automatically contains the 11 essential incident response criteria:</p>
-            <ol class="report-compliance-list">
-                <li><strong>Executive Summary</strong> with environmental risk posture</li>
-                <li><strong>Analysis Metadata</strong> (timestamps, filename, UTC timezone basis)</li>
-                <li><strong>Total Events</strong> and line count verification</li>
-                <li><strong>Successful Logins</strong> tally</li>
-                <li><strong>Failed Logins</strong> and rate analysis</li>
-                <li><strong>Suspicious IP Addresses</strong> table with highest severity</li>
-                <li><strong>Detected Anomalies</strong> categorized by MITRE ATT&CK vectors</li>
-                <li><strong>Severity Classification</strong> (LOW, MEDIUM, HIGH, CRITICAL)</li>
-                <li><strong>Relevant Event Evidence</strong> (raw extracted log samples)</li>
-                <li><strong>Recommended Investigation Steps</strong> & firewall rules</li>
-                <li><strong>False-Positive Disclaimer</strong> highlighting behavioral detection context</li>
+            <p class="text-muted text-sm mb-2">The generated report complies with all 11 required sections from the task guidelines:</p>
+            <ol style="padding-left: 1.2rem; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.8;">
+                <li><strong>Executive Summary:</strong> Overall risk posture and high-level assessment.</li>
+                <li><strong>Analysis Metadata:</strong> Log filename, execution time, and UTC timezone.</li>
+                <li><strong>Total Events:</strong> Breakdown of total lines, successful and failed logins.</li>
+                <li><strong>Successful Logins:</strong> Authorized authentication sessions.</li>
+                <li><strong>Failed Logins:</strong> Authentication errors and burst counts.</li>
+                <li><strong>Suspicious IP Addresses:</strong> Detailed table of flagged hosts and severity.</li>
+                <li><strong>Detected Anomalies:</strong> Chronological record of rule violations.</li>
+                <li><strong>Severity Classification:</strong> LOW, MEDIUM, HIGH, and CRITICAL breakdown.</li>
+                <li><strong>Relevant Event Evidence:</strong> Sample raw log lines demonstrating detections.</li>
+                <li><strong>Recommended Investigation Steps:</strong> Containment and hardening guidelines.</li>
+                <li><strong>False-Positive Disclaimer:</strong> Explaining behavioral indicator limits.</li>
             </ol>
         </div>
     </div>
 
-    <!-- Plaintext Quick Preview -->
+    <!-- Plaintext preview -->
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title">📑 Plaintext ASCII Grid Preview</h2>
-            <a href="{{ url_for('export_report', format_type='text') }}" class="card-link">Download .TXT →</a>
+            <h2 class="card-title">Plaintext Report Preview (.txt)</h2>
+            <a href="{{ url_for('export_report', format_type='text') }}" class="card-link">Download .txt →</a>
         </div>
         <div class="card-body">
-            <pre class="report-preview-box"><code>{{ txt_content }}</code></pre>
+            <pre class="pre-box"><code>{{ txt_content }}</code></pre>
         </div>
     </div>
 </div>
 
-<!-- Rendered Markdown Full Report Section -->
-<div class="card mt-4">
+<!-- Markdown Preview -->
+<div class="card">
     <div class="card-header">
-        <h2 class="card-title">📄 Formatted Markdown Report View</h2>
-        <a href="{{ url_for('export_report', format_type='markdown') }}" class="card-link">Download .MD →</a>
+        <h2 class="card-title">Markdown Report Preview (.md)</h2>
+        <a href="{{ url_for('export_report', format_type='markdown') }}" class="card-link">Download .md →</a>
     </div>
-    <div class="card-body markdown-rendered-box">
-        <pre class="report-markdown-pre"><code>{{ md_content }}</code></pre>
+    <div class="card-body">
+        <pre class="pre-box" style="background-color: #f8fafc; color: var(--text-dark); border: 1px solid var(--border-color); max-height: 400px;"><code>{{ md_content }}</code></pre>
     </div>
 </div>
 {% endblock %}

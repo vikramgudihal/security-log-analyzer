@@ -1,78 +1,72 @@
 {% extends "base.html" %}
 
-{% block title %}Upload & Select Logs{% endblock %}
+{% block title %}Upload Logs{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h1 class="page-title">Ingest Security Logs</h1>
-    <p class="page-subtitle">Upload sanitized server logs or test pre-configured synthetic attack scenarios.</p>
+    <div>
+        <h1 class="page-title">Ingest Server Logs</h1>
+        <p class="page-subtitle">Upload your sanitized log file (.log or .txt) or test with sample datasets.</p>
+    </div>
 </div>
 
-<div class="grid-2-col">
-    <!-- Upload Section -->
+<div class="grid-2">
+    <!-- Upload Form -->
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title">📁 Upload Custom Log File</h2>
-            <span class="badge-neutral">Local Processing Only</span>
+            <h2 class="card-title">Upload Log File</h2>
+            <span class="badge badge-neutral">Local Processing</span>
         </div>
         <div class="card-body">
-            <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data" class="upload-form">
-                <div class="drop-zone" id="dropZone">
-                    <span class="drop-icon">📤</span>
-                    <p class="drop-title">Drag & drop your log file here</p>
-                    <p class="drop-sub">Supported formats: <strong>.log</strong> and <strong>.txt</strong> (Max: 16 MB)
-                    </p>
-                    <input type="file" name="logfile" id="fileInput" class="file-input" accept=".log,.txt" required>
-                    <button type="button" class="btn btn-secondary"
-                        onclick="document.getElementById('fileInput').click()">Browse Files</button>
-                    <p id="selectedFileName" class="selected-file-text"></p>
+            <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
+                <div class="upload-dropzone" id="dropZone">
+                    <div class="dropzone-title">Click to browse or drop your log file here</div>
+                    <div class="dropzone-sub">Supported formats: <strong>.log</strong> and <strong>.txt</strong> (Max: 16 MB)</div>
+                    <input type="file" name="logfile" id="fileInput" class="form-control" accept=".log,.txt" required style="max-width: 300px; margin: 0 auto;">
+                    <div id="selectedFileName" style="margin-top: 0.75rem; font-size: 0.82rem; font-weight: 600; color: var(--color-primary);"></div>
                 </div>
 
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-block">🚀 Analyze Log File</button>
+                <div style="margin-top: 1.25rem;">
+                    <button type="submit" class="btn btn-primary btn-block">Analyze Log File</button>
                 </div>
             </form>
 
-            <div class="upload-specs">
-                <h4>Supported Log Formats:</h4>
-                <ul>
-                    <li><strong>Linux Auth Logs:</strong> <code>/var/log/auth.log</code>, <code>/var/log/secure</code>
-                        (sshd, pam_unix)</li>
-                    <li><strong>Web Access Logs:</strong> Apache Combined, Nginx Common Log Format (CLF)</li>
-                    <li><strong>Custom Sanitized:</strong> Anonymized text logs with ISO or Syslog timestamps</li>
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 0.82rem; color: var(--text-muted);">
+                <strong>Supported Log Formats:</strong>
+                <ul style="padding-left: 1.2rem; margin-top: 0.35rem;">
+                    <li>Linux Authentication: <code>/var/log/auth.log</code>, <code>/var/log/secure</code></li>
+                    <li>Web Servers: Apache and Nginx Combined and Common Log Format (CLF)</li>
+                    <li>Custom sanitized log files with Syslog or ISO 8601 timestamps</li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <!-- Synthetic Samples Section -->
+    <!-- Quick Load Sample Datasets -->
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title">🧪 Quick-Load Synthetic Test Datasets</h2>
-            <span class="badge-neutral">Safe & Sanitized</span>
+            <h2 class="card-title">Pre-Configured Sample Datasets</h2>
+            <span class="badge badge-neutral">Synthetic Data</span>
         </div>
         <div class="card-body">
-            <p class="text-muted">Choose from pre-packaged synthetic datasets to demonstrate specific incident response
-                and anomaly detection rules:</p>
+            <p class="text-muted text-sm mb-3">Select a synthetic sample dataset to test specific detection scenarios:</p>
 
-            <div class="sample-list">
-                {% for sample in samples %}
-                <div class="sample-card {% if sample.name == current_file %}sample-card-active{% endif %}">
-                    <div class="sample-info">
-                        <div class="sample-name">
-                            <span class="sample-badge">LOG</span>
-                            <strong>{{ sample.name }}</strong>
-                            {% if sample.name == current_file %}
-                            <span class="badge-success">Currently Active</span>
-                            {% endif %}
-                        </div>
-                        <p class="sample-desc">{{ sample.desc }}</p>
+            {% for sample in samples %}
+            <div class="sample-row {% if sample.name == current_file %}active{% endif %}">
+                <div>
+                    <div class="sample-title">
+                        {{ sample.name }}
+                        {% if sample.name == current_file %}
+                            <span class="badge badge-success" style="margin-left: 0.4rem;">Active</span>
+                        {% endif %}
                     </div>
-                    <a href="{{ url_for('load_sample', sample_name=sample.name) }}" class="btn btn-outline btn-sm">Load
-                        & Inspect</a>
+                    <div class="sample-desc">{{ sample.desc }}</div>
                 </div>
-                {% endfor %}
+                <div>
+                    <a href="{{ url_for('load_sample', sample_name=sample.name) }}" class="btn btn-outline btn-sm">Load Sample</a>
+                </div>
             </div>
+            {% endfor %}
         </div>
     </div>
 </div>

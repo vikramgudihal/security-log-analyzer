@@ -1,123 +1,117 @@
 {% extends "base.html" %}
 
-{% block title %}SOC Telemetry Feed & Log Explorer{% endblock %}
+{% block title %}Security Events{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div>
-        <h1 class="page-title">SOC Telemetry Stream & Log Explorer</h1>
-        <p class="page-subtitle">Real-time log inspection, regex extraction & multi-attribute querying for: <span class="font-mono text-cyan">{{ filename }}</span></p>
+        <h1 class="page-title">Security Events Explorer</h1>
+        <p class="page-subtitle">Inspect parsed telemetry events from <strong>{{ filename }}</strong></p>
     </div>
-    <div class="header-stats">
-        <span class="badge-neutral font-mono">Telemetry: <strong>{{ filtered_count }}</strong> / <strong>{{ total_count }}</strong> Records</span>
-    </div>
-</div>
-
-<!-- Search & Query Filter Bar -->
-<div class="card filter-card">
-    <div class="card-body">
-        <form method="GET" action="{{ url_for('events') }}" class="filter-form">
-            <div class="filter-group" style="flex: 2;">
-                <label for="queryInput">Full-Text Search (Regex / String / Payload):</label>
-                <input type="text" name="q" id="queryInput" class="form-control font-mono" placeholder="Search URI, method, error code, or raw log string..." value="{{ query_search }}">
-            </div>
-
-            <div class="filter-group">
-                <label for="ipInput">Source IP:</label>
-                <input type="text" name="ip" id="ipInput" class="form-control font-mono" placeholder="e.g. 203.0.113.88" value="{{ ip_filter }}">
-            </div>
-
-            <div class="filter-group">
-                <label for="userInput">Target Username:</label>
-                <input type="text" name="user" id="userInput" class="form-control font-mono" placeholder="e.g. root, admin, bob" value="{{ user_filter }}">
-            </div>
-
-            <div class="filter-group">
-                <label for="eventTypeSelect">Event Type:</label>
-                <select name="event_type" id="eventTypeSelect" class="form-control">
-                    <option value="ALL" {% if event_type_filter == 'ALL' or not event_type_filter %}selected{% endif %}>All Event Types</option>
-                    <option value="LOGIN_FAILED" {% if event_type_filter == 'LOGIN_FAILED' %}selected{% endif %}>LOGIN_FAILED</option>
-                    <option value="LOGIN_SUCCESS" {% if event_type_filter == 'LOGIN_SUCCESS' %}selected{% endif %}>LOGIN_SUCCESS</option>
-                    <option value="WEB_REQUEST" {% if event_type_filter == 'WEB_REQUEST' %}selected{% endif %}>WEB_REQUEST</option>
-                    <option value="SESSION_OPEN" {% if event_type_filter == 'SESSION_OPEN' %}selected{% endif %}>SESSION_OPEN</option>
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <label for="statusSelect">Auth Status:</label>
-                <select name="status" id="statusSelect" class="form-control">
-                    <option value="ALL" {% if status_filter == 'ALL' or not status_filter %}selected{% endif %}>All Statuses</option>
-                    <option value="FAILURE" {% if status_filter == 'FAILURE' %}selected{% endif %}>FAILURE</option>
-                    <option value="SUCCESS" {% if status_filter == 'SUCCESS' %}selected{% endif %}>SUCCESS</option>
-                </select>
-            </div>
-
-            <div class="filter-buttons">
-                <button type="submit" class="btn btn-primary btn-sm">🔍 Filter</button>
-                <a href="{{ url_for('events') }}" class="btn btn-outline btn-sm">Reset</a>
-            </div>
-        </form>
+    <div class="text-muted text-sm font-mono">
+        Showing <strong>{{ filtered_count }}</strong> of <strong>{{ total_count }}</strong> events
     </div>
 </div>
 
-<!-- Telemetry Stream Table -->
+<!-- Search & Filter Card -->
+<div class="filter-card">
+    <form method="GET" action="{{ url_for('events') }}" class="filter-form">
+        <div class="filter-item" style="flex: 2;">
+            <label for="queryInput">Search Message / URI / IP:</label>
+            <input type="text" name="q" id="queryInput" class="form-control" placeholder="Search keywords..." value="{{ query_search }}">
+        </div>
+
+        <div class="filter-item">
+            <label for="ipInput">Source IP:</label>
+            <input type="text" name="ip" id="ipInput" class="form-control font-mono" placeholder="e.g. 203.0.113.88" value="{{ ip_filter }}">
+        </div>
+
+        <div class="filter-item">
+            <label for="userInput">Username:</label>
+            <input type="text" name="user" id="userInput" class="form-control" placeholder="e.g. root, admin" value="{{ user_filter }}">
+        </div>
+
+        <div class="filter-item">
+            <label for="eventTypeSelect">Event Type:</label>
+            <select name="event_type" id="eventTypeSelect" class="form-control">
+                <option value="ALL" {% if event_type_filter == 'ALL' or not event_type_filter %}selected{% endif %}>All Types</option>
+                <option value="LOGIN_FAILED" {% if event_type_filter == 'LOGIN_FAILED' %}selected{% endif %}>LOGIN_FAILED</option>
+                <option value="LOGIN_SUCCESS" {% if event_type_filter == 'LOGIN_SUCCESS' %}selected{% endif %}>LOGIN_SUCCESS</option>
+                <option value="WEB_REQUEST" {% if event_type_filter == 'WEB_REQUEST' %}selected{% endif %}>WEB_REQUEST</option>
+                <option value="SESSION_OPEN" {% if event_type_filter == 'SESSION_OPEN' %}selected{% endif %}>SESSION_OPEN</option>
+            </select>
+        </div>
+
+        <div class="filter-item">
+            <label for="statusSelect">Auth Status:</label>
+            <select name="status" id="statusSelect" class="form-control">
+                <option value="ALL" {% if status_filter == 'ALL' or not status_filter %}selected{% endif %}>All Statuses</option>
+                <option value="FAILURE" {% if status_filter == 'FAILURE' %}selected{% endif %}>FAILURE</option>
+                <option value="SUCCESS" {% if status_filter == 'SUCCESS' %}selected{% endif %}>SUCCESS</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 0.4rem;">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="{{ url_for('events') }}" class="btn btn-secondary btn-sm">Reset</a>
+        </div>
+    </form>
+</div>
+
+<!-- Events Table -->
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body" style="padding: 0;">
         {% if events %}
         <div class="table-responsive">
-            <table class="data-table">
+            <table class="table">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Timestamp (UTC)</th>
                         <th>Source IP</th>
-                        <th>Log Schema</th>
+                        <th>Log Type</th>
                         <th>Event Type</th>
                         <th>Status</th>
-                        <th>User Account</th>
-                        <th>URI / Port</th>
-                        <th>Raw Log Packet Record</th>
-                        <th>Dossier</th>
+                        <th>Username</th>
+                        <th>Path / Port</th>
+                        <th>Original Message</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for e in events %}
                     <tr>
-                        <td class="font-mono text-muted text-xs">{{ e.id }}</td>
-                        <td><code class="font-mono">{{ e.timestamp }}</code></td>
+                        <td class="text-muted font-mono">{{ e.id }}</td>
+                        <td class="font-mono text-sm">{{ e.timestamp }}</td>
                         <td>
-                            <a href="{{ url_for('investigate_ip', ip=e.source_ip) }}" class="ip-link font-mono">
+                            <a href="{{ url_for('investigate_ip', ip=e.source_ip) }}" class="font-mono text-primary">
                                 {{ e.source_ip }}
                             </a>
                         </td>
-                        <td><span class="badge-neutral font-mono">{{ e.log_type }}</span></td>
+                        <td><span class="badge badge-neutral">{{ e.log_type }}</span></td>
                         <td>
-                            <span class="event-tag event-{{ e.event_type|lower }}">{{ e.event_type }}</span>
+                            <span class="event-type-tag {% if e.event_type == 'LOGIN_FAILED' %}failure{% endif %}">{{ e.event_type }}</span>
                         </td>
                         <td>
                             {% if e.auth_status == 'SUCCESS' %}
-                                <span class="badge-success">SUCCESS</span>
+                                <span class="badge badge-success">Success</span>
                             {% elif e.auth_status == 'FAILURE' %}
-                                <span class="badge-danger">FAILURE</span>
+                                <span class="badge badge-danger">Failure</span>
                             {% else %}
-                                <span class="badge-neutral">-</span>
+                                <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if e.username and e.username != 'N/A' %}
-                                <span class="user-pill {% if e.is_invalid_user %}user-invalid{% endif %}">
-                                    {{ e.username }} {% if e.is_invalid_user %}<span class="text-danger">(Inv)</span>{% endif %}
-                                </span>
+                                <code>{{ e.username }}</code> {% if e.is_invalid_user %}<span class="text-danger text-xs">(Invalid)</span>{% endif %}
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td class="font-mono text-xs">{{ e.url if e.url != '-' else ('Port ' ~ e.port if e.port != '-' else '-') }}</td>
-                        <td class="code-cell font-mono">{{ e.message }}</td>
+                        <td class="code-snippet font-mono">{{ e.message }}</td>
                         <td>
-                            <a href="{{ url_for('investigate_ip', ip=e.source_ip) }}" class="btn btn-outline btn-xs">
-                                🎯 Dossier
-                            </a>
+                            <a href="{{ url_for('investigate_ip', ip=e.source_ip) }}" class="btn btn-outline btn-sm">View</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -125,11 +119,10 @@
             </table>
         </div>
         {% else %}
-        <div class="empty-state">
-            <span class="empty-icon">🔎</span>
-            <h3>No telemetry events matched query</h3>
-            <p class="text-muted">Adjust search terms or reset filters to view all parsed events.</p>
-            <a href="{{ url_for('events') }}" class="btn btn-primary btn-sm mt-3">Reset Filters</a>
+        <div style="text-align: center; padding: 3rem 1.5rem;">
+            <h3>No events found matching your filter</h3>
+            <p class="text-muted text-sm mt-1">Try clearing your search terms or resetting the filter options.</p>
+            <a href="{{ url_for('events') }}" class="btn btn-primary btn-sm mt-3">Clear Filters</a>
         </div>
         {% endif %}
     </div>
